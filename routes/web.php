@@ -29,4 +29,6 @@ Route::get('/jadwal-kendaraan', [JadwalController::class, 'index'])->name('jadwa
 // Route untuk PDF Perjalanan
 Route::get('/perjalanan/{nomor_perjalanan}/pdf', [PerjalananController::class, 'generatePdf'])->name('perjalanan.pdf');
 
-Route::get('/PeminjamanKendaraanUnpad', \App\Filament\Pages\PeminjamanKendaraanUnpad::class);
+Route::get('/PeminjamanKendaraanUnpad', function () {
+    return view('peminjaman-kendaraan-unpad-public');
+});
