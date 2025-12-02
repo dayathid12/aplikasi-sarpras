@@ -31,4 +31,7 @@ Route::get('/perjalanan/{nomor_perjalanan}/pdf', [PerjalananController::class, '
 
 Route::get('/PeminjamanKendaraanUnpad', function () {
     return view('peminjaman-kendaraan-unpad-public');
-});
+})->name('peminjaman.form');
+
+Route::get('/success/{token}', [App\Http\Controllers\PeminjamanController::class, 'success'])->name('peminjaman.success');
+Route::get('/status/{token}', [App\Http\Controllers\PeminjamanController::class, 'status'])->name('peminjaman.status');

@@ -37,7 +37,7 @@ class ListPerjalanans extends ListRecords
                 ->modifyQueryUsing(fn ($query) => $query->where('status_perjalanan', 'Menunggu Persetujuan')),
             'terjadwal' => Tab::make('Terjadwal')
                 ->icon('heroicon-o-check-circle')
-               
+
                 ->badge(fn () => static::getResource()::getModel()::where('status_perjalanan', 'Terjadwal')->count())
                 ->badgeColor('success')
                 ->modifyQueryUsing(fn ($query) => $query->where('status_perjalanan', 'Terjadwal')),
@@ -46,6 +46,11 @@ class ListPerjalanans extends ListRecords
                 ->badge(fn () => static::getResource()::getModel()::where('status_perjalanan', 'Ditolak')->count())
                 ->badgeColor('danger')
                 ->modifyQueryUsing(fn ($query) => $query->where('status_perjalanan', 'Ditolak')),
+            'hari-ini' => Tab::make('Hari Ini')
+                ->icon('heroicon-o-calendar-days')
+                ->badge(fn () => static::getResource()::getModel()::whereDate('waktu_keberangkatan', \Carbon\Carbon::today())->count())
+                ->badgeColor('info')
+                ->modifyQueryUsing(fn ($query) => $query->whereDate('waktu_keberangkatan', \Carbon\Carbon::today())),
         ];
     }
 }

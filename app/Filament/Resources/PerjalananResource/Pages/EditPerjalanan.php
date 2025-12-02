@@ -11,12 +11,7 @@ class EditPerjalanan extends EditRecord
 {
     protected static string $resource = PerjalananResource::class;
 
-    protected function getHeaderActions(): array
-    {
-        return [
-            Actions\DeleteAction::make(),
-        ];
-    }
+    
 
     public function getMaxContentWidth(): ?string
     {

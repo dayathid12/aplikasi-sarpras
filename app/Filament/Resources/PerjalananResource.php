@@ -12,6 +12,9 @@ use Filament\Forms\Form;
 use Filament\Resources\Resource;
 use Filament\Tables;
 use Filament\Tables\Table;
+use Filament\Tables\Filters\Filter;
+use Filament\Resources\Components\Tab;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class PerjalananResource extends Resource
@@ -29,6 +32,8 @@ class PerjalananResource extends Resource
                 Forms\Components\Section::make('Informasi Perjalanan')
                     ->description('Detail dasar perjalanan dinas')
                     ->icon('heroicon-o-information-circle')
+                    ->collapsed()
+                    ->extraAttributes(['class' => 'bg-blue-50 border border-blue-200'])
                     ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([
@@ -53,16 +58,19 @@ class PerjalananResource extends Resource
                                 Forms\Components\ToggleButtons::make('status_perjalanan')
                                     ->label('Status Perjalanan')
                                     ->options([
+                                        'Permohonan' => 'Permohonan',
                                         'Menunggu Persetujuan' => 'Menunggu Persetujuan',
                                         'Terjadwal' => 'Terjadwal',
                                         'Ditolak' => 'Ditolak',
                                     ])
                                     ->icons([
+                                        'Permohonan' => 'heroicon-o-document-text',
                                         'Menunggu Persetujuan' => 'heroicon-o-clock',
                                         'Terjadwal' => 'heroicon-o-check-circle',
                                         'Ditolak' => 'heroicon-o-x-circle',
                                     ])
                                     ->colors([
+                                        'Permohonan' => 'info',
                                         'Menunggu Persetujuan' => 'warning',
                                         'Terjadwal' => 'success',
                                         'Ditolak' => 'danger',
@@ -94,9 +102,11 @@ class PerjalananResource extends Resource
 
                     ]),
 
-                Forms\Components\Section::make('Informasi Pengguna')
-                    ->description('Data pengguna, unit kerja, dan kota kabupaten')
+                Forms\Components\Section::make('Informasi Pengguna & Detail Perjalanan')
+                    ->description('Data pengguna, unit kerja, dan informasi lengkap perjalanan')
                     ->icon('heroicon-o-user-group')
+                    ->collapsed()
+                    ->extraAttributes(['class' => 'bg-green-50 border border-green-200'])
                     ->schema([
                         Forms\Components\Grid::make(1)
                             ->schema([
@@ -128,12 +138,7 @@ class PerjalananResource extends Resource
                                             ->maxLength(255),
                                     ]),
                             ]),
-                    ]),
 
-                Forms\Components\Section::make('Detail Perjalanan')
-                    ->description('Informasi lengkap perjalanan')
-                    ->icon('heroicon-o-map-pin')
-                    ->schema([
                         Forms\Components\Select::make('nama_kegiatan')
                             ->label('Nama Kegiatan')
                             ->options([
@@ -205,12 +210,12 @@ class PerjalananResource extends Resource
                                     ->disabled()
                                     ->placeholder('Provinsi akan muncul otomatis'),
                             ]),
-
                     ]),
 
                 Forms\Components\Section::make('Dokumen & Berkas')
                     ->description('Upload dokumen terkait perjalanan')
                     ->icon('heroicon-o-document-text')
+                    ->collapsed()
                     ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([
@@ -239,7 +244,7 @@ class PerjalananResource extends Resource
                 Forms\Components\Section::make('Kendaraan & Staf')
                     ->description('Informasi kendaraan dan pengemudi')
                     ->icon('heroicon-o-truck')
-
+                    ->extraAttributes(['class' => 'bg-purple-50 border border-purple-200'])
                     ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([
@@ -325,12 +330,14 @@ class PerjalananResource extends Resource
                     ->label('Status')
                     ->badge()
                     ->color(fn (string $state): string => match ($state) {
+                        'Permohonan' => 'info',
                         'Menunggu Persetujuan' => 'warning',
                         'Terjadwal' => 'success',
                         'Ditolak' => 'danger',
                         default => 'gray',
                     })
                     ->icon(fn (string $state): string => match ($state) {
+                        'Permohonan' => 'heroicon-o-document-text',
                         'Menunggu Persetujuan' => 'heroicon-o-clock',
                         'Terjadwal' => 'heroicon-o-check-circle',
                         'Ditolak' => 'heroicon-o-x-circle',
@@ -423,13 +430,7 @@ class PerjalananResource extends Resource
                     ->url(fn (Perjalanan $record): string => route('perjalanan.pdf', $record->nomor_perjalanan))
                     ->openUrlInNewTab(),
             ])
-            ->bulkActions([
-                Tables\Actions\BulkActionGroup::make([
-                    Tables\Actions\DeleteBulkAction::make()
-                        ->icon('heroicon-o-trash')
-                        ->color('danger'),
-                ]),
-            ])
+
             ->defaultSort('updated_at', 'desc')
             ->striped()
             ->paginated([10, 25, 50, 100])

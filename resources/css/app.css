@@ -1,9 +1,55 @@
-/* resources/css/app.css */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
 
-/* UNPAD Logo Styling */
-.unpad-logo {
-    padding: 1rem 0;
-    /* You can add more styling here, e.g., borders, shadows, etc. */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+    background: linear-gradient(120deg, #f3e7e9 0%, #e3eeff 100%);
+    font-family: 'Inter', sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* Add any other custom styles here */
+.form-container-card {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(15px);
+    -webkit-backdrop-filter: blur(15px);
+    border-radius: 20px;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+/* Custom styles for Filament form elements */
+.fi-input, .fi-select-input {
+    border-radius: 8px !important;
+    background-color: rgba(255, 255, 255, 0.7) !important;
+    transition: all 0.3s ease;
+}
+
+.fi-input:focus, .fi-select-input:focus {
+    background-color: rgba(255, 255, 255, 1) !important;
+    box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.4);
+}
+
+.fi-btn {
+    border-radius: 8px !important;
+    transition: all 0.3s ease;
+    font-weight: 600;
+}
+
+/* Style the primary submit button */
+.fi-btn.fi-btn-color-primary {
+    background-color: #2563eb !important; /* A nice blue */
+    color: white !important;
+}
+
+.fi-btn.fi-btn-color-primary:hover {
+    background-color: #1d4ed8 !important; /* A darker blue on hover */
+    transform: translateY(-2px);
+    box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+}
+
+h1 {
+    color: #1e3a8a; /* A darker, more professional blue for the title */
+}

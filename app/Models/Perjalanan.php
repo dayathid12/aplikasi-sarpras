@@ -34,6 +34,13 @@ class Perjalanan extends Model
         'status_cek_2',
         'nama_pengguna',
         'kontak_pengguna',
+        'nama_personil_perwakilan',
+        'kontak_pengguna_perwakilan',
+        'status_sebagai',
+        'provinsi',
+        'uraian_singkat_kegiatan',
+        'catatan_keterangan_tambahan',
+        'token',
         'pengemudi_id',
         'asisten_id',
         'nopol_kendaraan',
@@ -55,6 +62,9 @@ class Perjalanan extends Model
             if (empty($model->no_surat_tugas)) {
                 $nextNumber = static::max('nomor_perjalanan') + 1;
                 $model->no_surat_tugas = 'ST-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT) . '/' . date('Y');
+            }
+            if (empty($model->token)) {
+                $model->token = (string) \Illuminate\Support\Str::uuid();
             }
         });
     }
