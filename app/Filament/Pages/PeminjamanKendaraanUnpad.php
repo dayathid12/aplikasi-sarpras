@@ -5,13 +5,18 @@ namespace App\Filament\Pages;
 use Filament\Pages\Page;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
+use Filament\Forms\Components\Textarea;
+use Filament\Forms\Components\DateTimePicker;
+use Filament\Forms\Components\Checkbox;
+use Filament\Forms\Components\Grid;
 use Filament\Forms\Form;
 use Filament\Forms\Concerns\InteractsWithForms;
-use App\Models\Wilayah;
 use Filament\Notifications\Notification;
-use App\Models\Perjalanan; // Import the Perjalanan model
-use Illuminate\Support\Facades\Log; // For logging
-use Carbon\Carbon; // For date validation
+use App\Models\Wilayah;
+use App\Models\Perjalanan;
+use App\Models\UnitKerja;
+use App\Models\Kegiatan;
+use Closure;
 
 class PeminjamanKendaraanUnpad extends Page implements \Filament\Forms\Contracts\HasForms
 {
@@ -23,175 +28,93 @@ class PeminjamanKendaraanUnpad extends Page implements \Filament\Forms\Contracts
 
     protected static ?string $title = 'Peminjaman Kendaraan Unpad';
 
-    // Disable navigation for this page as it will be accessed publicly
-    protected static bool $shouldRegisterNavigation = false;
-
     public ?array $data = [];
-
-    public int $currentStep = 1; // New property for multi-step form
-
-    // Validation rules for each step
-    protected function getValidationRulesForStep(int $step): array
-    {
-        switch ($step) {
-            case 1:
-                return [
-                    'data.nama_peminjam' => ['required', 'string', 'max:255'],
-                    'data.nidn_nip' => ['required', 'string', 'max:255'],
-                    'data.unit_kerja' => ['required', 'string', 'max:255'],
-                    'data.no_telepon' => ['required', 'string', 'max:20'],
-                ];
-            case 2:
-                return [
-                    'data.tujuan_wilayah_id' => ['required', 'exists:wilayahs,wilayah_id'],
-                    'data.provinsi' => ['required', 'string', 'max:255'],
-                    'data.tujuan' => ['required', 'string', 'max:255'],
-                    'data.jumlah_penumpang' => ['required', 'numeric', 'min:1'],
-                    'data.tanggal_berangkat' => ['required', 'date', 'after_or_equal:today'],
-                    'data.tanggal_kembali' => ['required', 'date', 'after_or_equal:data.tanggal_berangkat'],
-                ];
-            default:
-                return [];
-        }
-    }
 
     public function mount(): void
     {
         $this->form->fill();
     }
 
-    protected function getPersonalDetailsFormSchema(): array
-    {
-        return [
-            TextInput::make('nama_peminjam')
-                ->label('Nama Peminjam')
-                ->required(),
-            TextInput::make('nidn_nip')
-                ->label('NIDN/NIP')
-                ->required(),
-            TextInput::make('unit_kerja')
-                ->label('Unit Kerja')
-                ->required(),
-            TextInput::make('no_telepon')
-                ->label('Nomor Telepon')
-                ->tel()
-                ->required(),
-        ];
-    }
-
-    protected function getTripDetailsFormSchema(): array
-    {
-        return [
-            Select::make('tujuan_wilayah_id')
-                ->label('Kota Kabupaten')
-                ->options(Wilayah::all()->pluck('nama_wilayah', 'wilayah_id'))
-                ->reactive()
-                ->searchable()
-                ->afterStateUpdated(function (\Filament\Forms\Set $set, $state) {
-                    if ($state) {
-                        $wilayah = Wilayah::find($state);
-                        if ($wilayah) {
-                            $set('provinsi', $wilayah->provinsi);
-                        }
-                    } else {
-                        $set('provinsi', null);
-                    }
-                })
-                ->required(),
-            TextInput::make('provinsi')
-                ->label('Provinsi')
-                ->disabled(),
-            TextInput::make('tujuan')
-                ->label('Tujuan Perjalanan')
-                ->required(),
-            TextInput::make('jumlah_penumpang')
-                ->label('Jumlah Penumpang')
-                ->numeric()
-                ->required()
-                ->minValue(1),
-            TextInput::make('tanggal_berangkat')
-                ->label('Tanggal Berangkat')
-                ->type('date')
-                ->required()
-                ->minDate(now()->toDateString()),
-            TextInput::make('tanggal_kembali')
-                ->label('Tanggal Kembali')
-                ->type('date')
-                ->required()
-                ->minDate(fn(\Filament\Forms\Get $get) => $get('tanggal_berangkat') ?? now()->toDateString()),
-        ];
-    }
-
     public function form(Form $form): Form
     {
-        // Dynamically get the schema based on the current step
-        $schema = match ($this->currentStep) {
-            1 => $this->getPersonalDetailsFormSchema(),
-            2 => $this->getTripDetailsFormSchema(),
-            default => [], // Should not happen
-        };
-
         return $form
-            ->schema($schema)
+            ->schema([
+                Grid::make(2)->schema([
+                    DateTimePicker::make('waktu_keberangkatan')->label('Waktu Keberangkatan')->required(),
+                    DateTimePicker::make('waktu_kepulangan')->label('Waktu Kepulangan'),
+                ]),
+                TextInput::make('lokasi_keberangkatan')->label('Lokasi Keberangkatan')->required(),
+                TextInput::make('jumlah_rombongan')->label('Jumlah Rombongan')->required()->numeric()->minValue(1),
+                Select::make('nama_kegiatan')
+                    ->label('Nama Kegiatan')
+                    ->options([
+                        'Perjalanan Dinas' => 'Perjalanan Dinas',
+                        'Kuliah Lapangan' => 'Kuliah Lapangan',
+                        'Kunjungan Industri' => 'Kunjungan Industri',
+                        'Kegiatan Perlombaan' => 'Kegiatan Perlombaan',
+                        'Kegiatan Kemahasiswaan' => 'Kegiatan Kemahasiswaan',
+                        'Kegiatan Perkuliahan' => 'Kegiatan Perkuliahan',
+                        'Kegiatan Lainnya' => 'Kegiatan Lainnya',
+                    ])->required(),
+                Textarea::make('alamat_tujuan')->label('Alamat Tujuan')->required(),
+                Select::make('unit_kerja_id')
+                    ->label('Unit Kerja/Fakultas/UKM')
+                    ->options(UnitKerja::all()->pluck('nama_unit_kerja', 'unit_kerja_id'))
+                    ->searchable()
+                    ->required(),
+                TextInput::make('nama_pengguna')->label('Nama Pengguna')->required(),
+                TextInput::make('kontak_pengguna')->label('Kontak Pengguna')->required(),
+                Checkbox::make('use_same_info')
+                    ->label('Gunakan informasi yang sama untuk Personil Perwakilan')
+                    ->reactive()
+                    ->afterStateUpdated(function (\Filament\Forms\Set $set, $state, Closure $get) {
+                        if ($state) {
+                            $set('nama_personil_perwakilan', $get('nama_pengguna'));
+                            $set('kontak_pengguna_perwakilan', $get('kontak_pengguna'));
+                        } else {
+                            $set('nama_personil_perwakilan', null);
+                            $set('kontak_pengguna_perwakilan', null);
+                        }
+                    }),
+                TextInput::make('nama_personil_perwakilan')->label('Nama Personil Perwakilan')->required(),
+                TextInput::make('kontak_pengguna_perwakilan')->label('Kontak Personil Perwakilan')->required(),
+                Select::make('status_sebagai')
+                    ->label('Status Sebagai')
+                    ->options([
+                        'Mahasiswa' => 'Mahasiswa',
+                        'Dosen' => 'Dosen',
+                        'Staf' => 'Staf',
+                        'Lainnya' => 'Lainnya',
+                    ])->required(),
+                Select::make('tujuan_wilayah_id')
+                    ->label('Kota Kabupaten')
+                    ->options(Wilayah::all()->pluck('nama_wilayah', 'wilayah_id'))
+                    ->reactive()
+                    ->searchable()
+                    ->afterStateUpdated(function (\Filament\Forms\Set $set, $state) {
+                        if ($state) {
+                            $wilayah = Wilayah::find($state);
+                            if ($wilayah) {
+                                $set('provinsi', $wilayah->provinsi);
+                            }
+                        } else {
+                            $set('provinsi', null);
+                        }
+                    }),
+                TextInput::make('provinsi')->label('Provinsi')->disabled(),
+                Textarea::make('uraian_singkat_kegiatan')->label('Uraian Singkat Kegiatan'),
+                Textarea::make('catatan_keterangan_tambahan')->label('Catatan/Keterangan Tambahan'),
+            ])
             ->statePath('data');
     }
 
-    public function nextStep(): void
+    public function submit(): void
     {
-        // Validate current step fields
-        $this->validateOnly(array_keys($this->getValidationRulesForStep($this->currentStep)));
-
-        if ($this->currentStep < 2) { // Assuming 2 steps
-            $this->currentStep++;
-        }
-    }
-
-    public function previousStep(): void
-    {
-        if ($this->currentStep > 1) {
-            $this->currentStep--;
-        }
-    }
-
-    public function finish(): void // Renamed from submit
-    {
-        // Validate all fields before final submission
-        $this->validate($this->getValidationRulesForStep(1) + $this->getValidationRulesForStep(2));
-
-        try {
-            $data = $this->form->getState();
-
-            // Create a new Perjalanan record
-            Perjalanan::create([
-                'tujuan_wilayah_id' => $data['tujuan_wilayah_id'],
-                'provinsi' => $data['provinsi'],
-                'nama_peminjam' => $data['nama_peminjam'],
-                'nidn_nip' => $data['nidn_nip'],
-                'unit_kerja' => $data['unit_kerja'],
-                'no_telepon' => $data['no_telepon'],
-                'tujuan' => $data['tujuan'],
-                'jumlah_penumpang' => $data['jumlah_penumpang'],
-                'tanggal_berangkat' => Carbon::parse($data['tanggal_berangkat']),
-                'tanggal_kembali' => Carbon::parse($data['tanggal_kembali']),
-                // Add other fields from the Perjalanan model as necessary
-                // 'status' => 'pending', // Example default status
-            ]);
-
-            Notification::make()
-                ->title('Formulir berhasil dikirim!')
-                ->success()
-                ->send();
-
-            $this->form->fill(); // Clear the form after successful submission
-            $this->currentStep = 1; // Reset to first step
-
-        } catch (\Throwable $e) {
-            Log::error('Error submitting Peminjaman Kendaraan form: ' . $e->getMessage());
-            Notification::make()
-                ->title('Terjadi kesalahan saat mengirim formulir.')
-                ->danger()
-                ->body('Silakan coba lagi. Jika masalah berlanjut, hubungi administrator.')
-                ->send();
-        }
+        // Handle form submission here
+        // For now, just a placeholder
+        \Filament\Notifications\Notification::make()
+            ->title('Form submitted (placeholder)!')
+            ->success()
+            ->send();
     }
 }
