@@ -29,6 +29,7 @@ class PeminjamanKendaraanUnpad extends Page implements \Filament\Forms\Contracts
     protected static ?string $title = 'Peminjaman Kendaraan Unpad';
 
     public ?array $data = [];
+    public int $currentStep = 1;
 
     public function mount(): void
     {
