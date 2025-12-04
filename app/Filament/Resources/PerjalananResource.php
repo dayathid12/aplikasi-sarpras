@@ -347,7 +347,7 @@ class PerjalananResource extends Resource
                             'Ditolak' => 'bg-red-100 text-red-800 border border-red-200',
                             default => 'bg-gray-100 text-gray-800 border border-gray-200',
                         };
-                        return "<div class='flex items-center space-x-2'>
+                        return "<div class='space-y-1'>
                                     <div class='font-mono text-sm font-semibold'>{$nomor}</div>
                                     <div class='inline-flex items-center px-3 py-1 rounded-full text-xs font-medium {$capsuleClass}'>
                                         <x-{$statusIcon} class='h-4 w-4 mr-1' />
