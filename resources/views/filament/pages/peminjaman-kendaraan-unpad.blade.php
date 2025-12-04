@@ -9,7 +9,7 @@
     body {
         font-family: 'Poppins', sans-serif;
         background-color: #ffffff; /* Ganti ke putih */
-        background-image: linear-gradient(
+        background-image: url('{{ asset('images/Unpad_logo.png') }}'), linear-gradient(
             45deg,
             #f8f8f8 25%, /* Sangat terang, hampir putih */
             transparent 25%,
@@ -19,13 +19,27 @@
             transparent 75%,
             transparent
         );
-        background-size: 20px 20px; /* Ukuran pola */
+        background-repeat: no-repeat, repeat; /* Logo tidak berulang, pola berulang */
+        background-position: center center, 0 0; /* Logo di tengah, pola mulai dari kiri atas */
+        background-size: 300px auto, 20px 20px; /* Ukuran logo, ukuran pola */
         display: flex;
         justify-content: center;
         align-items: center;
         min-height: 100vh;
         padding: 20px;
         color: #333;
+        position: relative; /* Diperlukan untuk z-index jika ada elemen lain */
+    }
+
+    body::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: rgba(255, 255, 255, 0.7); /* Lapisan putih transparan untuk memudarkan logo */
+        z-index: 1; /* Di atas logo, di bawah konten kartu */
     }
 
     /* Container Kartu Utama */
@@ -36,6 +50,8 @@
         border-radius: 12px;
         box-shadow: 0 4px 20px rgba(0,0,0,0.05);
         padding: 40px;
+        position: relative; /* Untuk memastikan kartu di atas lapisan transparan */
+        z-index: 2; /* Di atas lapisan transparan */
     }
 
     /* Header (Logo & Judul) */
@@ -202,9 +218,6 @@
 <div class="card">
     <!-- Header Section -->
     <div class="header">
-        <div class="logo-container">
-            <img src="{{ asset('images/Unpad_logo.png') }}" alt="Unpad Logo" class="h-16 mx-auto mb-4">
-        </div>
         <h2>Formulir Peminjaman Kendaraan Universitas Padjadjaran</h2>
         <h4>Direktorat Pengelolaan Aset dan Sarana Prasarana</h4>
     </div>
