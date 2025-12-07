@@ -1,8 +1,8 @@
 @props(['record'])
 
 @php
-    $nomor_perjalanan = $record->nomor_perjalanan;
-    $url = $nomor_perjalanan ? url('/peminjaman/status/' . $nomor_perjalanan) : '';
+    $token = $record->token;
+    $url = $token ? url('/peminjaman/status/' . $token) : '';
 @endphp
 
 @if ($url)
