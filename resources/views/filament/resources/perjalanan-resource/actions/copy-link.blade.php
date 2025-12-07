@@ -8,7 +8,7 @@
 @if ($url)
     <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 text-left shadow-sm animate-bounce-short" style="animation-delay: 0.1s;">
         <p class="text-xs text-yellow-700 mb-3 leading-relaxed">
-            Gunakan informasi di bawah ini untuk melacak progres pengajuan Anda secara real-time.
+            Gunakan informasi di bawah ini apabila akan share link status permohonan.
         </p>
 
         <div class="bg-white border border-yellow-300 rounded-lg p-3 flex items-center justify-between shadow-inner group relative">

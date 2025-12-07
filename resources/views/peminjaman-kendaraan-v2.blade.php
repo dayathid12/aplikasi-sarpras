@@ -902,26 +902,38 @@
             loadingIcon.classList.remove('hidden');
 
             const formData = new FormData(form);
-            const data = {};
-            for (let [key, value] of formData.entries()) {
-                data[key] = value;
-            }
-
-            // Get CSRF token
+            
+            // Append CSRF token to formData
             const csrfToken = document.querySelector('meta[name="csrf-token"]').getAttribute('content');
+            formData.append('_token', csrfToken); // Laravel expects _token for CSRF
 
             try {
                 const response = await fetch('/PeminjamanKendaraanUnpad/submit', {
                     method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': csrfToken,
-                        'Accept': 'application/json'
-                    },
-                    body: JSON.stringify({ data: data }) // Wrap form data in 'data' key as expected by controller
+                    // Do NOT set Content-Type header when sending FormData with files;
+                    // the browser will set it automatically as multipart/form-data with the correct boundary.
+                    // headers: {
+                    //     'Content-Type': 'application/json', // REMOVED
+                    //     'X-CSRF-TOKEN': csrfToken, // This is now handled by _token in formData
+                    //     'Accept': 'application/json'
+                    // },
+                    body: formData // Send FormData directly
                 });
 
-                const result = await response.json();
+                // If the response is not JSON (e.g., a redirect or plain text error),
+                // result.json() will throw an error. Handle this gracefully.
+                let result;
+                const contentType = response.headers.get("content-type");
+                if (contentType && contentType.indexOf("application/json") !== -1) {
+                    result = await response.json();
+                } else {
+                    // Handle non-JSON response, maybe a plain text error from server
+                    const text = await response.text();
+                    console.error("Server responded with non-JSON:", text);
+                    alert('Terjadi kesalahan server yang tidak terduga. Mohon coba lagi atau hubungi administrator.');
+                    return; // Exit function if response is not parsable JSON
+                }
+
 
                 if (result.success) {
                     openModal(result.tracking_url);

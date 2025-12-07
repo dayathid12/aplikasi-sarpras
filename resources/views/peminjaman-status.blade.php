@@ -372,6 +372,22 @@
                         <div class="detail-label">Jumlah Rombongan</div>
                         <div class="detail-value">{{ $perjalanan->jumlah_rombongan }} orang</div>
                     </div>
+                    @if($perjalanan->surat_peminjaman_kendaraan)
+                    <div class="detail-card">
+                        <div class="detail-label">Surat Peminjaman</div>
+                        <div class="detail-value">
+                            <a href="{{ Storage::url($perjalanan->surat_peminjaman_kendaraan) }}" target="_blank" class="btn-link">Lihat Surat</a>
+                        </div>
+                    </div>
+                    @endif
+                    @if($perjalanan->dokumen_pendukung)
+                    <div class="detail-card">
+                        <div class="detail-label">Dokumen Pendukung</div>
+                        <div class="detail-value">
+                            <a href="{{ Storage::url($perjalanan->dokumen_pendukung) }}" target="_blank" class="btn-link">Lihat Dokumen</a>
+                        </div>
+                    </div>
+                    @endif
                 </div>
             </div>
         </div>
@@ -387,6 +403,22 @@
                 <button onclick="location.reload()" class="btn btn-primary">🔄 Refresh Status</button>
             </div>
         </div>
+        <style>
+            .btn-link {
+                color: #667eea;
+                text-decoration: none;
+                font-weight: 600;
+            }
+            .btn-link:hover {
+                text-decoration: underline;
+            }
+            .pdf-viewer {
+                width: 100%;
+                height: 500px; /* Adjust height as needed */
+                border: 1px solid #e5e7eb;
+                border-radius: 8px;
+            }
+        </style>
     </div>
 </body>
 </html>

@@ -167,31 +167,35 @@ class PerjalananResource extends Resource
                                     ->directory('surat-peminjaman-kendaraan')
                                     ->acceptedFileTypes(['application/pdf', 'image/*'])
                                     ->maxSize(5120)
-                                    ->hintActions([
-                                        Forms\Components\Actions\Action::make('view_surat_peminjaman')
+                                    ->downloadable()
+                                    ->openable()
+                                    ->hintAction(
+                                        Forms\Components\Actions\Action::make('view_surat')
                                             ->label('Lihat')
                                             ->icon('heroicon-o-eye')
-                                            ->color('primary')
-                                            ->url(fn (Model $record) => $record->surat_peminjaman_kendaraan ? Storage::url($record->surat_peminjaman_kendaraan) : '#')
-                                            ->openUrlInNewTab()
-                                            ->visible(fn (Model $record) => (bool) $record->surat_peminjaman_kendaraan),
-                                    ]),
+                                            ->color('info')
+                                            ->url(fn ($record) => $record ? Storage::url($record->surat_peminjaman_kendaraan) : null, shouldOpenInNewTab: true)
+                                            ->visible(fn ($record) => $record && $record->surat_peminjaman_kendaraan)
+                                    ),
 
                                 Forms\Components\FileUpload::make('dokumen_pendukung')
                                     ->label('Dokumen Pendukung')
                                     ->directory('dokumen-pendukung')
                                     ->acceptedFileTypes(['application/pdf', 'image/*', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'])
                                     ->maxSize(5120)
-                                    ->hintActions([
-                                        Forms\Components\Actions\Action::make('view_dokumen_pendukung')
+                                    ->downloadable()
+                                    ->openable()
+                                    ->hintAction(
+                                        Forms\Components\Actions\Action::make('view_dokumen')
                                             ->label('Lihat')
                                             ->icon('heroicon-o-eye')
-                                            ->color('primary')
-                                            ->url(fn (Model $record) => $record->dokumen_pendukung ? Storage::url($record->dokumen_pendukung) : '#')
-                                            ->openUrlInNewTab()
-                                            ->visible(fn (Model $record) => (bool) $record->dokumen_pendukung),
-                                    ]),
+                                            ->color('info')
+                                            ->url(fn ($record) => $record ? Storage::url($record->dokumen_pendukung) : null, shouldOpenInNewTab: true)
+                                            ->visible(fn ($record) => $record && $record->dokumen_pendukung)
+                                    ),
                             ]),
+                        Forms\Components\View::make('filament.forms.components.file-preview')
+                            ->visibleOn('edit'),
                     ]),
 
                 Forms\Components\Section::make('Kendaraan & Staf')
@@ -242,6 +246,7 @@ class PerjalananResource extends Resource
                                     ->required()
                                     ->extraAttributes(['class' => 'justify-center']),
                             ]),
+
                         Forms\Components\ToggleButtons::make('jenis_kegiatan')
                             ->label('Jenis Kegiatan')
                             ->options([
