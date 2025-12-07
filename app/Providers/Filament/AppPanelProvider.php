@@ -39,6 +39,7 @@ class AppPanelProvider extends PanelProvider
             ])
             ->brandLogo(asset('images/Unpad_logo.png'))
             ->brandLogoHeight('2.2rem')
+            ->viteTheme('resources/css/filament/app/theme.css')
             ->discoverResources(in: app_path('Filament/Resources'), for: 'App\\Filament\\Resources')
             ->discoverPages(in: app_path('Filament/Pages'), for: 'App\\Filament\\Pages')
             ->pages([
