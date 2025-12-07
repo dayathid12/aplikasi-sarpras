@@ -65,12 +65,12 @@ class PerjalananResource extends Resource
                                     ]),
                                 Forms\Components\Grid::make(2)
                                     ->schema([
-                                        Forms\Components\TextInput::make('nama_perwakilan')
+                                        Forms\Components\TextInput::make('nama_personil_perwakilan')
                                             ->label('Nama Perwakilan')
                                             ->placeholder('Masukkan nama perwakilan')
                                             ->maxLength(255),
 
-                                        Forms\Components\TextInput::make('kontak_perwakilan')
+                                        Forms\Components\TextInput::make('kontak_pengguna_perwakilan')
                                             ->label('Kontak Perwakilan')
                                             ->placeholder('Masukkan nomor telepon/WA perwakilan')
                                             ->maxLength(255),
