@@ -34,6 +34,9 @@ class PerjalananResource extends Resource
                 Forms\Components\Section::make('Informasi Pengguna')
                     ->description('Data pengguna, unit kerja, dan kota kabupaten')
                     ->icon('heroicon-o-user-group')
+                    ->iconColor('blue-400')
+                    ->collapsible()
+                    ->collapsed()
                     ->schema([
                         Forms\Components\Grid::make(1)
                             ->schema([
@@ -82,6 +85,9 @@ class PerjalananResource extends Resource
                 Forms\Components\Section::make('Detail Perjalanan')
                     ->description('Informasi lengkap perjalanan')
                     ->icon('heroicon-o-map-pin')
+                    ->iconColor('emerald-400')
+                    ->collapsible()
+                    ->collapsed()
                     ->schema([
                         Forms\Components\Select::make('nama_kegiatan')
                             ->label('Nama Kegiatan')
@@ -159,6 +165,9 @@ class PerjalananResource extends Resource
                 Forms\Components\Section::make('Dokumen & Berkas')
                     ->description('Upload dokumen terkait perjalanan')
                     ->icon('heroicon-o-document-text')
+                    ->iconColor('info')
+                    ->collapsible()
+                    ->collapsed()
                     ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([
@@ -249,7 +258,7 @@ class PerjalananResource extends Resource
 
                         Forms\Components\ToggleButtons::make('jenis_kegiatan')
                             ->label('Jenis Kegiatan')
-                            ->options([
+                            ->uoptions([
                                 'LK' => 'LK',
                                 'DK' => 'DK',
                                 'LB' => 'LB',

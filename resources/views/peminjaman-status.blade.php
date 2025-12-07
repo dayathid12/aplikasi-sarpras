@@ -194,18 +194,22 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            padding: 0 1rem;
+            padding: 2rem 1rem 1rem;
+            background: linear-gradient(135deg, var(--slate-50) 0%, white 100%);
+            border-radius: 12px;
+            border: 1px solid var(--slate-100);
         }
 
         /* Horizontal Line */
         .stepper::before {
             content: '';
             position: absolute;
-            top: 16px; /* Half of circle height */
-            left: 0;
-            right: 0;
-            height: 2px;
-            background-color: var(--slate-100);
+            top: 40px;
+            left: 2rem;
+            right: 2rem;
+            height: 3px;
+            background: linear-gradient(90deg, var(--slate-200) 0%, var(--slate-300) 50%, var(--slate-200) 100%);
+            border-radius: 2px;
             z-index: 1;
         }
 
@@ -214,54 +218,97 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.5rem;
+            gap: 0.75rem;
             z-index: 2;
             flex: 1;
             text-align: center;
+            padding: 0 0.5rem;
         }
 
         .step-circle {
-            width: 32px;
-            height: 32px;
+            width: 48px;
+            height: 48px;
             background: white;
-            border: 2px solid var(--slate-200);
+            border: 3px solid var(--slate-200);
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 0.75rem;
+            font-size: 1rem;
             font-weight: 700;
             color: var(--slate-400);
             flex-shrink: 0;
-            transition: all 0.3s;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
         }
 
         /* Active/Completed Step Styles */
         .step-item.completed .step-circle {
-            background: var(--primary);
-            border-color: var(--primary);
+            background: linear-gradient(135deg, var(--success) 0%, #047857 100%);
+            border-color: var(--success);
             color: white;
+            transform: scale(1.1);
+            box-shadow: 0 4px 16px rgba(5, 150, 105, 0.3);
         }
 
         .step-item.active .step-circle {
-            background: var(--primary);
+            background: linear-gradient(135deg, var(--primary) 0%, #1d4ed8 100%);
             border-color: var(--primary);
             color: white;
-            box-shadow: 0 0 0 4px var(--primary-bg);
+            transform: scale(1.15);
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+            animation: gentle-pulse 2s infinite;
         }
 
         /* If Rejected */
         .step-item.error .step-circle {
-            background: var(--danger);
+            background: linear-gradient(135deg, var(--danger) 0%, #dc2626 100%);
             border-color: var(--danger);
             color: white;
+            transform: scale(1.1);
+            box-shadow: 0 4px 16px rgba(225, 29, 72, 0.3);
         }
 
-        .step-content h4 { font-size: 0.875rem; font-weight: 700; color: var(--slate-800); }
-        .step-content p { font-size: 0.75rem; margin-top: 0.25rem; }
+        .step-content h4 {
+            font-size: 0.875rem;
+            font-weight: 600;
+            color: var(--slate-700);
+            margin-bottom: 0.25rem;
+        }
+        .step-content p {
+            font-size: 0.75rem;
+            margin-top: 0.25rem;
+            line-height: 1.4;
+        }
 
-        .pulse-text { color: var(--primary); font-weight: 600; animation: pulse 2s infinite; }
-        .final-text { color: var(--danger); font-weight: 700; }
+        /* Green color for completed steps */
+        .step-item.completed .step-content h4 {
+            color: var(--success);
+        }
+        .step-item.completed .step-content p {
+            color: #065f46;
+        }
+
+        .pulse-text {
+            color: var(--primary);
+            font-weight: 600;
+            animation: gentle-pulse 2s infinite;
+        }
+        .final-text {
+            color: var(--danger);
+            font-weight: 700;
+        }
+
+        @keyframes gentle-pulse {
+            0%, 100% {
+                transform: scale(1.15);
+                box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+            }
+            50% {
+                transform: scale(1.2);
+                box-shadow: 0 8px 25px rgba(37, 99, 235, 0.6);
+            }
+        }
 
         @keyframes pulse {
             0% { opacity: 1; }
@@ -541,17 +588,15 @@
                                                     $daysDiff = $return ? $departure->diffInDays($return) : null;
                                                 @endphp
 
-                                                @if($return && $daysDiff <= 1)
+                                                @if($return && $daysDiff == 0)
                                                     {{ $departure->locale('id')->isoFormat('dddd, D MMM YYYY') }}<br>
-                                                    {{ $departure->format('H:i') }} WIB - {{ $return->format('H:i') }} WIB
+                                                    {{ $departure->format('H:i') }} WIB <span style="font-weight: 400; opacity: 0.7;">sampai</span> {{ $return->format('H:i') }} WIB
                                                 @else
-                                                    {{ $departure->locale('id')->isoFormat('dddd, D MMM YYYY') }}<br>
-                                                    {{ $departure->format('H:i') }} WIB
                                                     @if($return)
-                                                        <br><span style="font-size: 0.75rem; font-weight: 400; color: var(--slate-600); opacity: 0.75;">
-                                                            {{ $return->locale('id')->isoFormat('dddd, D MMM YYYY') }}<br>
-                                                            {{ $return->format('H:i') }} WIB
-                                                        </span>
+                                                        {{ $departure->locale('id')->isoFormat('dddd, D MMM YYYY') }} {{ $departure->format('H:i') }} WIB <span style="font-weight: 400; opacity: 0.7;">sampai</span> {{ $return->locale('id')->isoFormat('dddd, D MMM YYYY') }} {{ $return->format('H:i') }} WIB
+                                                    @else
+                                                        {{ $departure->locale('id')->isoFormat('dddd, D MMM YYYY') }}<br>
+                                                        {{ $departure->format('H:i') }} WIB
                                                     @endif
                                                 @endif
                                             </div>
@@ -583,8 +628,8 @@
                             <li>
                                 <div class="info-icon"><i class="fas fa-user"></i></div>
                                 <div class="info-text">
-                                    <label>Nama Lengkap</label>
-                                    <div>{{ $perjalanan->nama_pengguna }}</div>
+                                    <label>Nama Perwakilan</label>
+                                    <div>{{ $perjalanan->nama_personil_perwakilan ?: 'Tidak tersedia' }}</div>
                                 </div>
                             </li>
                             <li>
@@ -597,8 +642,8 @@
                             <li>
                                 <div class="info-icon"><i class="fas fa-phone"></i></div>
                                 <div class="info-text">
-                                    <label>Kontak</label>
-                                    <div>{{ $perjalanan->kontak_pengguna }}</div>
+                                    <label>Kontak Perwakilan</label>
+                                    <div>{{ $perjalanan->kontak_pengguna_perwakilan ?: 'Tidak tersedia' }}</div>
                                 </div>
                             </li>
                         </ul>
@@ -666,8 +711,8 @@
 
                 <!-- Help -->
                 <div style="text-align:center; font-size:0.75rem; color:var(--slate-400); margin-top:1rem;">
-                    Butuh bantuan? Hubungi logistik di <br>
-                    <a href="#" style="color:var(--primary); text-decoration:none; font-weight:600;">logistik@unpad.ac.id</a>
+                    Butuh bantuan? Hubungi Poll Kendaraan <br>
+                    <a href="#" style="color:var(--primary); text-decoration:none; font-weight:600;">08121121</a>
                 </div>
 
                 </div>

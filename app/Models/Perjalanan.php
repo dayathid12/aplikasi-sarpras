@@ -84,4 +84,34 @@ class Perjalanan extends Model
     {
         return $this->hasMany(PerjalananKendaraan::class, 'perjalanan_id');
     }
+
+    /**
+     * Get the kendaraan for the Perjalanan
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function kendaraan()
+    {
+        return $this->hasManyThrough(Kendaraan::class, PerjalananKendaraan::class, 'perjalanan_id', 'nopol_kendaraan', 'nomor_perjalanan', 'kendaraan_nopol');
+    }
+
+    /**
+     * Get the pengemudi for the Perjalanan
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function pengemudi()
+    {
+        return $this->hasManyThrough(Staf::class, PerjalananKendaraan::class, 'perjalanan_id', 'staf_id', 'nomor_perjalanan', 'pengemudi_id');
+    }
+
+    /**
+     * Get the asisten for the Perjalanan
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasManyThrough
+     */
+    public function asisten()
+    {
+        return $this->hasManyThrough(Staf::class, PerjalananKendaraan::class, 'perjalanan_id', 'staf_id', 'nomor_perjalanan', 'asisten_id');
+    }
 }

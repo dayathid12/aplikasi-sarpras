@@ -28,13 +28,13 @@
                                     {{ $perjalanan->nama_pengguna }}
                                 </td>
                                 <td class="px-6 py-4">
-                                    {{ $perjalanan->kendaraan ? $perjalanan->kendaraan->merk_type . ' (' . $perjalanan->kendaraan->nopol_kendaraan . ')' : '-' }}
+                                    {{ $perjalanan->kendaraan->count() > 0 ? $perjalanan->kendaraan->map(fn($k) => $k->merk_type . ' (' . $k->nopol_kendaraan . ')')->implode(', ') : '-' }}
                                 </td>
                                 <td class="px-6 py-4">
-                                    {{ $perjalanan->pengemudi ? $perjalanan->pengemudi->nama_staf : '-' }}
+                                    {{ $perjalanan->pengemudi->count() > 0 ? $perjalanan->pengemudi->pluck('nama_staf')->implode(', ') : '-' }}
                                 </td>
                                 <td class="px-6 py-4">
-                                    {{ $perjalanan->asisten ? $perjalanan->asisten->nama_staf : '-' }}
+                                    {{ $perjalanan->asisten->count() > 0 ? $perjalanan->asisten->pluck('nama_staf')->implode(', ') : '-' }}
                                 </td>
                                 <td class="px-6 py-4">
                                     {{ \Carbon\Carbon::parse($perjalanan->waktu_keberangkatan)->locale('id')->isoFormat('DD MMMM YYYY HH:mm') }}
