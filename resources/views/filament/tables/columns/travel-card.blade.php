@@ -13,6 +13,15 @@
     $returnDay = $returnTime->format('d');
     $returnMonth = strtoupper($returnTime->translatedFormat('M'));
     
+    // Calculate last updated time difference
+    $updatedAtDiff = null;
+    if ($record->updated_at) {
+        $currentLocale = \Carbon\Carbon::getLocale();
+        \Carbon\Carbon::setLocale('id');
+        $updatedAtDiff = $record->updated_at->diffForHumans();
+        \Carbon\Carbon::setLocale($currentLocale);
+    }
+    
     // Hitung Durasi
     $diffDays = $departureTime->diffInDays($returnTime);
     $isOvernight = $diffDays >= 1;
@@ -94,6 +103,13 @@
             
             {{-- Decorative Corner Stripe --}}
             <div class="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br {{ $theme['stripe'] }} to-transparent rounded-tl-[1.75rem]"></div>
+
+            {{-- Last Updated Text --}}
+            @if($updatedAtDiff)
+                <span class="absolute top-3 right-5 text-[10px] font-medium text-slate-400">
+                    Terakhir diperbarui: {{ $updatedAtDiff }}
+                </span>
+            @endif
 
             <div class="flex flex-col lg:flex-row items-stretch p-5 lg:p-7 gap-6 lg:gap-8">
 

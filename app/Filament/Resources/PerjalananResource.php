@@ -350,6 +350,19 @@ class PerjalananResource extends Resource
                         'Operasional' => 'Operasional',
                     ])
                     ->label('Jenis Operasional'),
+
+                Tables\Filters\SelectFilter::make('kendaraan_nopol')
+                    ->label('Nomor Polisi Kendaraan')
+                    ->options(Kendaraan::all()->pluck('nopol_kendaraan', 'nopol_kendaraan'))
+                    ->searchable()
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['value'],
+                            fn (Builder $query, $value): Builder => $query->whereHas('details', function ($query) use ($value) {
+                                $query->where('kendaraan_nopol', $value);
+                            }),
+                        );
+                    }),
             ])
             ->actions([
                 Tables\Actions\ActionGroup::make([
