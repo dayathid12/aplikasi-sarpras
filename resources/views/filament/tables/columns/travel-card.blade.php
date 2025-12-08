@@ -1,220 +1,274 @@
 @php
     $record = $getRecord();
 
-    // Data Mapping & Formatting
+    // --- 1. DATA MAPPING & FORMATTING ---
     $departureTime = \Carbon\Carbon::parse($record->waktu_keberangkatan);
-    $returnTime = \Carbon\Carbon::parse($record->waktu_kepulangan);
+    $returnTime    = \Carbon\Carbon::parse($record->waktu_kepulangan);
 
-    $day = $departureTime->format('d');
+    $day   = $departureTime->format('d');
     $month = strtoupper($departureTime->translatedFormat('M')); // e.g., DES
     $startTime = $departureTime->format('H:i');
     $returnTimeDisplay = $returnTime->format('H:i');
-    $returnDate = $returnTime->translatedFormat('d M');
 
-    // Calculate isOvernight
-    $isOvernight = $departureTime->diffInDays($returnTime) >= 1;
-
-    // Calculate duration in days/nights
+    $returnDay = $returnTime->format('d');
+    $returnMonth = strtoupper($returnTime->translatedFormat('M'));
+    
+    // Hitung Durasi
     $diffDays = $departureTime->diffInDays($returnTime);
-    $duration = '1 Hari';
-    if ($diffDays > 0) {
-        $duration = ($diffDays + 1) . ' Hari'; // +1 because 0 diffInDays means 1 day
-        if ($diffDays > 0) { // If it's more than a single day
-            $duration .= ' ' . $diffDays . ' Malam';
-        }
+    $isOvernight = $diffDays >= 1;
+    
+    $duration = '1 Hari'; 
+    if ($isOvernight) {
+        $days = $diffDays + 1;
+        $nights = $diffDays;
+        $duration = "$days Hari $nights Malam";
     }
 
-
-    $detail = $record->details->first();
-    $driverName = $detail?->pengemudi?->nama_staf ?? '-';
-    $vehicleName = $detail?->kendaraan?->merk_type ?? 'Menunggu Unit';
-    $plateNumber = $detail?->kendaraan?->nopol_kendaraan ?? '-';
-    $picName = $record->nama_pengguna ?? '-'; // From main record
-
-    // Status mapping from the React example
-    $statusType = match ($record->status_perjalanan) {
-        'Terjadwal' => 'scheduled',
-        'Menunggu Persetujuan' => 'pending',
-        'Ditolak' => 'rejected',
-        'Selesai' => 'done',
-        'Berjalan' => 'scheduled', // Assuming "Berjalan" is visually similar to "Terjadwal"
-        default => 'pending', // Default to pending if unknown
-    };
-
-    // Styling based on statusType
-    $decorativeLineColor = match ($statusType) {
-        'scheduled' => 'bg-indigo-500',
-        'pending'   => 'bg-amber-400',
-        'done'      => 'bg-emerald-500',
-        default     => 'bg-gray-300',
-    };
-
-    $statusBadgeClasses = match ($statusType) {
-        'scheduled' => 'bg-blue-50 text-blue-600 border-blue-100',
-        'pending'   => 'bg-amber-50 text-amber-600 border-amber-100',
-        'rejected'  => 'bg-red-50 text-red-600 border-red-100',
-        'done'      => 'bg-emerald-50 text-emerald-600 border-emerald-100',
-        default     => 'bg-gray-50 text-gray-600 border-gray-100',
-    };
+    // --- 2. RELASI DATA (Driver & Kendaraan) ---
+    $detail      = $record->details->first();
+    $driverName  = $detail?->pengemudi?->nama_staf;
+    $vehicleName = $detail?->kendaraan?->merk_type;
+    $plateNumber = $detail?->kendaraan?->nopol_kendaraan;
 
     // Driver Initials
-    $driverInitials = ($driverName !== '-') ? collect(explode(' ', $driverName))->map(fn($n) => substr($n, 0, 1))->slice(0, 2)->implode('') : '-';
-    if($driverInitials == '') { // Handle empty names
-        $driverInitials = '-';
+    $driverInitials = '-';
+    if ($driverName) {
+        $names = explode(' ', $driverName);
+        $driverInitials = collect($names)->map(fn($n) => strtoupper(substr($n, 0, 1)))->take(2)->implode('');
     }
 
+    // --- 3. STATUS COLOR THEME CONFIGURATION ---
+    // Mapping status string ke key tema
+    $statusKey = match ($record->status_perjalanan) {
+        'Terjadwal', 'Berjalan', 'Selesai' => 'active',
+        'Menunggu Persetujuan' => 'pending',
+        'Ditolak', 'Dibatalkan' => 'danger',
+        default => 'pending',
+    };
+
+    // Konfigurasi warna berdasarkan tema (Soft UI Palette)
+    $theme = match ($statusKey) {
+        'active' => [
+            'glow' => 'from-indigo-300 to-blue-300',
+            'stripe' => 'from-indigo-500/10',
+            'badge_bg' => 'bg-indigo-50',
+            'badge_text' => 'text-indigo-600',
+            'badge_ring' => 'ring-indigo-500/10',
+            'dot_color' => 'bg-indigo-500',
+            'icon_color' => 'text-indigo-600',
+            'border_color' => 'border-indigo-500',
+        ],
+        'pending' => [
+            'glow' => 'from-amber-200 to-orange-200',
+            'stripe' => 'from-amber-500/10',
+            'badge_bg' => 'bg-amber-50',
+            'badge_text' => 'text-amber-700',
+            'badge_ring' => 'ring-amber-500/20',
+            'dot_color' => 'bg-amber-500',
+            'icon_color' => 'text-amber-600',
+            'border_color' => 'border-amber-500',
+        ],
+        'danger' => [
+            'glow' => 'from-red-200 to-rose-200',
+            'stripe' => 'from-red-500/10',
+            'badge_bg' => 'bg-red-50',
+            'badge_text' => 'text-red-700',
+            'badge_ring' => 'ring-red-500/20',
+            'dot_color' => 'bg-red-500',
+            'icon_color' => 'text-red-600',
+            'border_color' => 'border-red-500',
+        ],
+    };
 @endphp
 
-<div class="group bg-white rounded-3xl pl-7 p-5 border border-gray-100 shadow-[0_2px_8px_-2px_rgba(0,0,0,0.05)] hover:shadow-xl hover:shadow-indigo-500/10 transition-all duration-300 relative overflow-hidden">
+<!-- Main Wrapper -->
+<!-- Note: Pastikan font 'Plus Jakarta Sans' atau font sans-serif pilihan Anda sudah dimuat di layout utama aplikasi -->
+<div class="w-full font-sans antialiased">
+    <div class="relative group transition-all duration-300 hover:-translate-y-1">
+        
+        {{-- 1. Ambient Glow Effect on Hover --}}
+        <div class="absolute -inset-0.5 bg-gradient-to-r {{ $theme['glow'] }} rounded-[2rem] opacity-0 group-hover:opacity-30 blur transition duration-500"></div>
 
-    {{-- Decorative Status Line --}}
-    <div class="absolute top-0 left-0 bottom-0 w-1.5 {{ $decorativeLineColor }}"></div>
+        {{-- 2. Card Container --}}
+        <div class="relative bg-white rounded-[1.75rem] shadow-[0_2px_20px_-4px_rgba(0,0,0,0.05)] border border-slate-100 p-1">
+            
+            {{-- Decorative Corner Stripe --}}
+            <div class="absolute top-0 left-0 w-24 h-24 bg-gradient-to-br {{ $theme['stripe'] }} to-transparent rounded-tl-[1.75rem]"></div>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start lg:items-center relative">
+            <div class="flex flex-col lg:flex-row items-stretch p-5 lg:p-7 gap-6 lg:gap-8">
 
-        {{-- 1. DATE, TIME & STATUS BLOCK --}}
-        <div class="flex flex-col gap-3 pr-6 lg:border-r border-gray-100 min-w-[240px]">
-
-            {{-- Status Positioned Above Date --}}
-            <div>
-                <span class="px-3 py-1 rounded-lg text-xs font-bold tracking-wider uppercase border {{ $statusBadgeClasses }} flex items-center gap-2 w-fit">
-                    <span class="w-1.5 h-1.5 rounded-full bg-current opacity-60"></span>
-                    {{ $record->status_perjalanan }}
-                </span>
-            </div>
-
-            <div class="flex flex-row items-start gap-5">
-                {{-- Calendar Widget --}}
-                <div class="flex flex-col items-center w-[72px] bg-white rounded-2xl border border-gray-200 shadow-sm overflow-hidden shrink-0 group-hover:border-indigo-200 transition-colors">
-                    <div class="w-full bg-indigo-100 text-indigo-700 text-[11px] font-bold uppercase py-1.5 text-center tracking-widest border-b border-gray-100">
-                        {{ $month }}
+                {{-- SECTION A: DATE, TIME & STATUS --}}
+                <div class="flex flex-col gap-5 lg:w-[32%] shrink-0 relative">
+                    
+                    {{-- Status Badge --}}
+                    <div class="flex items-center gap-3">
+                                                    <span class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-wide {{ $theme['badge_bg'] }} {{ $theme['badge_text'] }} ring-1 {{ $theme['badge_ring'] }} whitespace-nowrap">                            <span class="relative flex h-2 w-2">
+                                @if($statusKey === 'active')
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 {{ $theme['dot_color'] }}"></span>
+                                @endif
+                                <span class="relative inline-flex rounded-full h-2 w-2 {{ $theme['dot_color'] }}"></span>
+                            </span>
+                            {{ $record->status_perjalanan ?? 'Draft' }}
+                        </span>
+                        
+                        {{-- Nama Kegiatan (Truncated) --}}
+                        <span class="text-xs font-semibold text-slate-500 whitespace-nowrap" title="{{ $record->nama_kegiatan }}">
+                            {{ $record->nama_kegiatan ?? '-' }}
+                        </span>
                     </div>
-                    <div class="py-2 text-4xl font-extrabold text-gray-900 tracking-tighter">
-                        {{ $day }}
+
+                    <div class="flex gap-5">
+                        {{-- Calendar Box --}}
+                        <div class="flex flex-col items-center justify-center w-[76px] h-[84px] bg-slate-50 rounded-2xl border border-slate-100 shadow-sm shrink-0">
+                            <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">{{ $month }}</span>
+                            <span class="text-3xl font-extrabold text-slate-800 -mt-1">{{ $day }}</span>
+                        </div>
+
+                        {{-- Timeline Flow --}}
+                        <div class="flex flex-col justify-between py-1 relative w-full">
+                            {{-- Connector Line --}}
+                            <div class="absolute left-[7px] top-3 bottom-3 w-0.5 bg-gradient-to-b from-indigo-200 via-slate-200 to-indigo-200 rounded-full"></div>
+
+                            {{-- Departure --}}
+                            <div class="relative pl-6">
+                                <div class="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-white border-[3px] {{ $theme['border_color'] }} z-10 shadow-sm"></div>
+                                <div class="flex flex-col">
+                                    <span class="text-lg font-bold text-slate-800 leading-none">{{ $startTime }}</span>
+                                    <span class="text-[10px] font-medium text-slate-400 mt-0.5 uppercase tracking-wide">Berangkat</span>
+                                </div>
+                            </div>
+
+                            {{-- Duration Pill --}}
+                            <div class="relative pl-6 my-2">
+                                <div class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-indigo-100 bg-indigo-50/50 shadow-sm text-[10px] font-bold text-indigo-600">
+                                    {{-- Icon Clock/Time --}}
+                                    <svg class="w-3 h-3 text-indigo-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                                    </svg>
+                                    {{ $duration }}
+                                </div>
+                            </div>
+
+                            {{-- Return --}}
+                            <div class="relative pl-6">
+                                <div class="absolute left-0 top-1.5 w-4 h-4 rounded-full bg-slate-200 border-[3px] border-white ring-1 ring-slate-200 z-10"></div>
+                                <div class="flex flex-col">
+                                    <div class="flex items-baseline gap-1.5">
+                                        <span class="text-lg font-bold text-slate-600 leading-none">{{ $returnTimeDisplay }}</span>
+                                        @if($isOvernight)
+                                            <span class="text-[10px] font-semibold text-slate-400">+{{ $diffDays }} Hari</span>
+                                        @endif
+                                    </div>
+                                    <span class="text-[10px] font-medium text-slate-400 mt-0.5 uppercase tracking-wide">Pulang</span>
+                                    @if($isOvernight)
+                                        <span class="text-[10px] font-semibold text-slate-500 mt-1">{{ $returnDay }} {{ $returnMonth }}</span>
+                                    @endif
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                {{-- Time Details with Duration Line --}}
-                <div class="flex flex-col relative h-full justify-between py-1 w-full min-h-[80px]">
-                    {{-- Connecting Line --}}
-                    <div class="absolute left-[7px] top-3 bottom-3 w-0.5 bg-gray-200 rounded-full"></div>
+                {{-- Divider --}}
+                <div class="w-full h-px lg:w-px lg:h-auto bg-slate-100"></div>
 
-                    {{-- Departure --}}
-                    <div class="relative pl-5 mb-3">
-                        <div class="absolute left-0 top-[6px] w-4 h-4 rounded-full bg-indigo-500 border-2 border-white shadow-md z-10"></div>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wide mb-0.5 leading-none">Berangkat</p>
-                        <div class="flex items-center gap-1.5">
-                            <span class="text-lg font-bold text-gray-900 leading-none">{{ $startTime }}</span>
+                {{-- SECTION B: ROUTE (Origin -> Destination) --}}
+                <div class="flex flex-col justify-center gap-6 lg:w-[38%] py-2 relative">
+                                        {{-- Dotted Line --}}
+                                        <div class="absolute left-[9px] top-4 bottom-10 w-0.5 border-l-2 border-dashed border-slate-200"></div>
+                    
+                                        {{-- Origin --}}
+                                        <div class="relative pl-8 group/loc">
+                                            <div class="absolute left-0 top-1 w-5 h-5 rounded-full bg-indigo-50 flex items-center justify-center z-10 group-hover/loc:scale-110 transition-transform">
+                                                <div class="w-2 h-2 rounded-full bg-indigo-500"></div>
+                                            </div>
+                                            <h4 class="text-sm font-semibold text-slate-900 leading-tight">
+                                                {{ $record->lokasi_keberangkatan ?? 'Lokasi Awal' }}
+                                            </h4>
+                                            <p class="text-[11px] text-slate-400 mt-0.5">Asal Keberangkatan</p>
+                                        </div>
+                    
+                                        {{-- Direction Arrow --}}
+                    <div class="relative pl-8">
+                        <div class="p-1 rounded bg-slate-50 w-fit text-slate-300">
+                            {{-- Icon Arrow Down --}}
+                            <svg class="w-3 h-3 rotate-90 lg:rotate-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                            </svg>
                         </div>
                     </div>
 
-                    {{-- Duration Badge --}}
-                    <div class="relative pl-5 my-1 z-20">
-                         <div class="inline-flex items-center gap-1.5 px-2 py-1 rounded-md border text-[10px] font-bold uppercase tracking-wide whitespace-nowrap bg-white
-                           @if($isOvernight)
-                             text-indigo-600 border-indigo-100
-                           @else
-                             text-gray-400 border-gray-200
-                           @endif
-                         ">
-                           @if($isOvernight)
-                            <x-heroicon-o-moon class="w-3 h-3" />
-                           @else
-                            <x-heroicon-o-sun class="w-3 h-3" />
-                           @endif
-                           {{ $duration }}
-                         </div>
+                    {{-- Destination --}}
+                    <div class="relative pl-8 group/loc">
+                        <div class="absolute left-0 top-1 w-5 h-5 rounded-full {{ $theme['badge_bg'] }} flex items-center justify-center z-10 shadow-sm shadow-indigo-200 group-hover/loc:scale-110 transition-transform">
+                            {{-- Icon Map Pin --}}
+                            <svg class="w-3 h-3 {{ $theme['icon_color'] }}" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                            </svg>
+                        </div>
+                        <h4 class="text-xl font-bold text-slate-800 tracking-tight leading-tight">
+                            {{ $record->wilayah?->nama_wilayah ?? 'Kota/Kabupaten Belum Ada' }}
+                        </h4>
+                        <p class="text-sm text-slate-500 mt-0.5">
+                            {{ $record->alamat_tujuan ?? 'Alamat Tujuan Belum Ada' }}
+                        </p>
+                    </div>
+                </div>
+
+                {{-- SECTION C: RESOURCES (Driver & Vehicle) --}}
+                <div class="flex flex-col justify-center gap-3 lg:w-[30%] bg-slate-50/80 rounded-2xl p-4 border border-slate-100/50">
+                    <p class="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1 opacity-70">
+                        Assigned Resources
+                    </p>
+
+                    {{-- Driver Card --}}
+                    <div class="flex items-center gap-3 rounded-xl border transition-all
+                        @if($driverName) bg-white p-2.5 border-slate-100 shadow-sm @else p-2 border-transparent opacity-60 @endif">
+                        
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-bold shadow-sm shrink-0
+                            @if($driverName) bg-slate-800 text-white @else bg-slate-100 text-slate-400 @endif">
+                            @if($driverName)
+                                {{ $driverInitials }}
+                            @else
+                                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" /></svg>
+                            @endif
+                        </div>
+                        
+                        <div class="flex flex-col min-w-0">
+                            <p class="text-xs font-bold @if($driverName) text-slate-700 @else text-slate-400 italic @endif">
+                                {{ $driverName ?? 'Belum ada driver' }}
+                            </p>
+                            <p class="text-[10px] text-slate-400">Pengemudi</p>
+                        </div>
                     </div>
 
-                    {{-- Return --}}
-                    <div class="relative pl-5 mt-3">
-                        <div class="absolute left-0 top-[6px] w-4 h-4 rounded-full bg-gray-300 border-2 border-white shadow-md z-10"></div>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wide mb-0.5 leading-none">Pulang</p>
-                        <div class="flex flex-wrap items-center gap-x-2 gap-y-1">
-                            <span class="text-base font-bold text-gray-500 leading-none">{{ $returnTimeDisplay }}</span>
-                            @if($isOvernight)
-                                <span class="text-xs font-bold text-indigo-600 bg-indigo-50 border border-indigo-100 px-1.5 py-0.5 rounded-md flex items-center gap-1">
-                                    <x-heroicon-o-calendar class="w-3 h-3" />
-                                    {{ $returnDate }}
+                    {{-- Vehicle Card --}}
+                    <div class="flex items-center gap-3 rounded-xl border transition-all
+                        @if($vehicleName) bg-white p-2.5 border-slate-100 shadow-sm @else p-2 border-transparent opacity-60 @endif">
+                        
+                        <div class="w-8 h-8 rounded-full flex items-center justify-center shrink-0
+                            @if($vehicleName) bg-indigo-50 text-indigo-600 @else bg-slate-100 text-slate-400 @endif">
+                            {{-- Icon Truck/Car --}}
+                            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                            </svg>
+                        </div>
+
+                        <div class="flex flex-col min-w-0">
+                            <p class="text-xs font-bold @if($vehicleName) text-slate-700 @else text-slate-400 italic @endif">
+                                {{ $vehicleName ?? 'Menunggu Unit' }}
+                            </p>
+                            @if($plateNumber)
+                                <span class="text-[10px] font-mono text-slate-500 bg-slate-100 px-1 rounded w-fit mt-0.5">
+                                    {{ $plateNumber }}
                                 </span>
                             @endif
                         </div>
                     </div>
                 </div>
+
             </div>
         </div>
-
-        {{-- 2. Route & Purpose --}}
-        <div class="flex-1 relative w-full lg:w-auto mt-2 lg:mt-0">
-            {{-- Vertical Line Connector --}}
-            <div class="absolute left-[7px] top-2 bottom-6 w-0.5 bg-gradient-to-b from-gray-200 to-transparent border-l border-dashed border-gray-300"></div>
-
-            <div class="flex flex-col gap-6">
-                {{-- Origin --}}
-                <div class="flex items-start gap-4 relative">
-                    <div class="w-4 h-4 rounded-full border-[3px] border-indigo-600 bg-white z-10 shadow-md mt-1 shrink-0"></div>
-                    <div>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Dari</p>
-                        <h4 class="font-bold text-gray-900 text-lg leading-tight">{{ $record->lokasi_keberangkatan }}</h4>
-                    </div>
-                </div>
-
-                {{-- Destination --}}
-                <div class="flex items-start gap-4 relative">
-                    <div class="w-4 h-4 rounded-full bg-indigo-600 border-2 border-indigo-200 z-10 shadow-md mt-1 shrink-0"></div>
-                    <div>
-                        <p class="text-[10px] text-gray-400 font-bold uppercase tracking-wider mb-0.5">Ke</p>
-                        <div class="flex flex-col sm:flex-row sm:items-center gap-2">
-                            <h4 class="font-bold text-gray-900 text-lg leading-tight">{{ $record->wilayah?->nama_wilayah ?? 'Tujuan Belum Ditentukan' }}</h4>
-                            <div class="inline-flex items-center gap-1 text-xs font-semibold text-indigo-600 bg-indigo-50 px-2.5 py-1 rounded-full border border-indigo-100">
-                                {{ $record->nama_kegiatan }}
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        {{-- 3. Driver & Vehicle Info --}}
-        <div class="flex flex-col sm:flex-row lg:flex-col gap-3 lg:w-[240px] bg-gray-50/50 rounded-2xl p-4 border border-dashed border-gray-200 w-full mt-2 lg:mt-0">
-            {{-- Driver --}}
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-xs shadow-md shrink-0">
-                    @if($driverInitials !== '-')
-                        {{ $driverInitials }}
-                    @else
-                        <x-heroicon-o-user class="w-4 h-4" />
-                    @endif
-                </div>
-                <div class="overflow-hidden">
-                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Driver</p>
-                    <p class="text-sm font-semibold text-gray-700 truncate">{{ $driverName }}</p>
-                </div>
-            </div>
-
-            <div class="h-px bg-gray-200 w-full hidden lg:block"></div>
-
-            {{-- Vehicle --}}
-            <div class="flex items-center gap-3">
-                <div class="w-8 h-8 rounded-full bg-indigo-50 border border-indigo-100 flex items-center justify-center text-indigo-600 shrink-0">
-                    <x-heroicon-o-truck class="w-4 h-4" />
-                </div>
-                <div>
-                    <p class="text-[10px] text-gray-400 uppercase font-bold tracking-wider">Kendaraan</p>
-                    <div class="flex items-center gap-2">
-                        <p class="text-sm font-semibold text-gray-700">{{ $vehicleName }}</p>
-                        @if($plateNumber !== '-')
-                            <span class="text-[10px] font-mono bg-white border border-gray-200 px-1.5 py-0.5 rounded text-gray-500">
-                                {{ $plateNumber }}
-                            </span>
-                        @endif
-                    </div>
-                </div>
-            </div>
-        </div>
-
-
-
     </div>
 </div>
-
