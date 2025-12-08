@@ -4,9 +4,9 @@ namespace App\Filament\Resources\PollKendaraanResource\Pages;
 
 use App\Filament\Resources\PollKendaraanResource;
 use Filament\Actions;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Resources\BaseEditRecord;
 
-class EditPollKendaraan extends EditRecord
+class EditPollKendaraan extends BaseEditRecord
 {
     protected static string $resource = PollKendaraanResource::class;
 

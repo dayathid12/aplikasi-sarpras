@@ -4,9 +4,9 @@ namespace App\Filament\Resources\UrbangResource\Pages;
 
 use App\Filament\Resources\UrbangResource;
 use Filament\Actions;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Resources\BaseEditRecord;
 
-class EditUrbang extends EditRecord
+class EditUrbang extends BaseEditRecord
 {
     protected static string $resource = UrbangResource::class;
 

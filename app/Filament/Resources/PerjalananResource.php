@@ -258,7 +258,7 @@ class PerjalananResource extends Resource
 
                         Forms\Components\ToggleButtons::make('jenis_kegiatan')
                             ->label('Jenis Kegiatan')
-                            ->uoptions([
+                            ->options([
                                 'LK' => 'LK',
                                 'DK' => 'DK',
                                 'LB' => 'LB',

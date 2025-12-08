@@ -4,9 +4,9 @@ namespace App\Filament\Resources\WilayahResource\Pages;
 
 use App\Filament\Resources\WilayahResource;
 use Filament\Actions;
-use Filament\Resources\Pages\EditRecord;
+use App\Filament\Resources\BaseEditRecord;
 
-class EditWilayah extends EditRecord
+class EditWilayah extends BaseEditRecord
 {
     protected static string $resource = WilayahResource::class;
 

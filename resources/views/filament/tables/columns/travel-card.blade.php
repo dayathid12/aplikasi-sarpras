@@ -70,7 +70,7 @@
     {{-- Decorative Status Line --}}
     <div class="absolute top-0 left-0 bottom-0 w-1.5 {{ $decorativeLineColor }}"></div>
 
-    <div class="flex flex-col lg:flex-row gap-6 items-start lg:items-center relative">
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 items-start lg:items-center relative">
 
         {{-- 1. DATE, TIME & STATUS BLOCK --}}
         <div class="flex flex-col gap-3 pr-6 lg:border-r border-gray-100 min-w-[240px]">
@@ -213,41 +213,7 @@
             </div>
         </div>
 
-        {{-- 4. Action Only (Right) --}}
-        <div class="absolute top-4 right-4 lg:static lg:w-auto flex items-center justify-end">
-             <x-filament::dropdown placement="bottom-end">
-                <x-slot name="trigger">
-                    <button class="text-gray-300 hover:text-indigo-600 hover:bg-indigo-50 p-2 rounded-xl transition-all">
-                        <x-heroicon-m-ellipsis-vertical class="w-5 h-5" />
-                    </button>
-                </x-slot>
 
-                <x-filament::dropdown.list>
-                    <x-filament::dropdown.list.item
-                        :href="\App\Filament\Resources\PerjalananResource::getUrl('view', ['record' => $record])"
-                        icon="heroicon-o-eye"
-                    >
-                        Detail
-                    </x-filament::dropdown.list.item>
-
-                    <x-filament::dropdown.list.item
-                        :href="\App\Filament\Resources\PerjalananResource::getUrl('edit', ['record' => $record])"
-                        icon="heroicon-o-pencil-square"
-                    >
-                        Edit
-                    </x-filament::dropdown.list.item>
-
-                    {{-- Delete Action --}}
-                    <x-filament::dropdown.list.item
-                        color="danger"
-                        wire:click="mountTableAction('delete', '{{ $record->id }}')" {{-- Corrected to mountTableAction for table actions --}}
-                        icon="heroicon-o-trash"
-                    >
-                        Delete
-                    </x-filament::dropdown.list.item>
-                </x-filament::dropdown.list>
-            </x-filament::dropdown>
-        </div>
 
     </div>
 </div>
