@@ -212,6 +212,16 @@ class PerjalananResource extends Resource
                 Forms\Components\Section::make('Kendaraan & Staf')
                     ->description('Informasi kendaraan dan pengemudi yang bertugas')
                     ->icon('heroicon-o-truck')
+                    ->headerActions([
+                        \Filament\Forms\Components\Actions\Action::make('back')
+                            ->label('Kembali')
+                            ->icon('heroicon-o-arrow-left')
+                            ->color('gray')
+                            ->url(route('filament.app.resources.perjalanans.index')),
+                        \Filament\Forms\Components\Actions\Action::make('edit')
+                            ->label('Edit')
+                            ->url(fn ($record) => route('filament.app.resources.perjalanans.edit', $record)),
+                    ])
                     ->schema([
                         Forms\Components\Grid::make(2)
                             ->schema([

@@ -36,4 +36,10 @@ class Staf extends Model
         'nama_bank',
         'status_aplikasi',
     ];
+
+    public function perjalanans()
+    {
+        return $this->belongsToMany(Perjalanan::class, 'perjalanan_kendaraans', 'pengemudi_id', 'perjalanan_id', 'staf_id', 'nomor_perjalanan')
+                    ->withPivot('kendaraan_nopol', 'asisten_id');
+    }
 }

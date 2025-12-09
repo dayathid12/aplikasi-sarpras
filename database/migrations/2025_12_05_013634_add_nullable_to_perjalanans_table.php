@@ -26,8 +26,8 @@ return new class extends Migration
             // Revert to non-nullable if necessary, but generally not recommended
             // to revert non-nullable changes if data might already exist.
             // For this specific case, we can assume it's fine to revert.
-            $table->foreignId('pengemudi_id')->nullable(false)->change();
-            $table->string('nopol_kendaraan')->nullable(false)->change();
+            // $table->foreignId('pengemudi_id')->nullable(false)->change();
+            // $table->string('nopol_kendaraan')->nullable(false)->change();
         });
     }
 };
