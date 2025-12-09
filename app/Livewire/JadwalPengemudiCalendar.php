@@ -21,10 +21,37 @@ class JadwalPengemudiCalendar extends Component
     public $assignDate;
     public $keterangan = '';
 
+    public array $manualSortOrder = [];
+
+    public $showDeleteModal = false;
+    public $driverToDeleteId;
+
     public function mount()
     {
         $this->currentDate = Carbon::now();
         $this->assignDate = Carbon::now()->format('Y-m-d');
+        
+        // Initialize manualSortOrder from the database
+        $this->manualSortOrder = Staf::orderBy('sort_order')
+                                     ->orderBy('nama_staf')
+                                     ->pluck('staf_id')
+                                     ->toArray();
+
+        // Ensure all staff have a sort_order. Assign sequential if null.
+        $stafsWithoutOrder = Staf::whereNull('sort_order')->get();
+        if ($stafsWithoutOrder->isNotEmpty()) {
+            $maxOrder = Staf::max('sort_order') ?? 0;
+            foreach ($stafsWithoutOrder as $staf) {
+                $maxOrder++;
+                $staf->sort_order = $maxOrder;
+                $staf->save();
+            }
+            // Re-fetch manualSortOrder after assigning default values
+            $this->manualSortOrder = Staf::orderBy('sort_order')
+                                         ->orderBy('nama_staf')
+                                         ->pluck('staf_id')
+                                         ->toArray();
+        }
     }
 
     public function openAssignDriverModal()
@@ -74,11 +101,48 @@ class JadwalPengemudiCalendar extends Component
         $this->currentDate->addMonth();
     }
 
+    public function deleteDriver($driverId)
+    {
+        $this->driverToDeleteId = $driverId;
+        $this->showDeleteModal = true;
+    }
+
+    public function deleteConfirmed()
+    {
+        $driverId = $this->driverToDeleteId;
+        $driver = Staf::find($driverId);
+
+        if ($driver) {
+            // Delete ALL associated JadwalPengemudi records for this driver, across all months.
+            // The Staf record itself is NOT deleted.
+            $driver->jadwalPengemudis()->delete();
+            
+            $this->dispatch('notify', 'Semua jadwal pengemudi berhasil dihapus.')->to(JadwalPengemudiCalendar::class);
+            $this->dispatch('refreshCalendar');
+        } else {
+            $this->dispatch('notify', 'Pengemudi tidak ditemukan.')->to(JadwalPengemudiCalendar::class);
+        }
+
+        $this->showDeleteModal = false;
+        $this->driverToDeleteId = null;
+    }
+
     #[On('refreshCalendar')]
     public function refreshData()
     {
         // This method will be called when the 'refreshCalendar' event is dispatched.
         // Livewire will automatically re-render the component.
+    }
+
+    #[On('update-staf-sort')] // Listen for this event from the frontend
+    public function updateSortOrder(array $newOrder)
+    {
+        foreach ($newOrder as $index => $stafId) {
+            Staf::where('staf_id', $stafId)->update(['sort_order' => $index + 1]);
+        }
+        $this->manualSortOrder = $newOrder; // Update in-memory for immediate re-render
+        $this->dispatch('notify', 'Urutan pengemudi berhasil diperbarui.')->to(JadwalPengemudiCalendar::class);
+        $this->dispatch('refreshCalendar'); // Re-render with new order
     }
 
     public function getStafProperty()
@@ -90,14 +154,15 @@ class JadwalPengemudiCalendar extends Component
                   ->orWhere('nip_staf', 'like', '%' . $this->search . '%');
         }
 
+        $query->orderBy('sort_order') // Primary sort by sort_order
+              ->orderBy('nama_staf'); // Secondary sort for those without sort_order or new entries
+
         return $query->with(['jadwalPengemudis' => function ($query) {
                 $query->whereYear('tanggal_jadwal', $this->currentDate->year)
                       ->whereMonth('tanggal_jadwal', $this->currentDate->month);
             }])
-            ->orderBy('nama_staf')
             ->get();
     }
-
     public function render()
     {
         return view('livewire.jadwal-pengemudi-calendar');

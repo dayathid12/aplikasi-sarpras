@@ -5,8 +5,10 @@ namespace App\Filament\Resources;
 use App\Filament\Resources\JadwalPengemudiResource\Pages;
 use App\Models\JadwalPengemudi;
 use Filament\Resources\Resource;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\SoftDeletingScope;
+use Filament\Forms;
+use Filament\Forms\Form;
+use Filament\Tables;
+use Filament\Tables\Table;
 
 class JadwalPengemudiResource extends Resource
 {
@@ -19,10 +21,47 @@ class JadwalPengemudiResource extends Resource
 
     protected static ?string $navigationLabel = 'Jadwal Pengemudi';
 
+    public static function form(Form $form): Form
+    {
+        return $form
+            ->schema([
+                Forms\Components\TextInput::make('nama_pengemudi')
+                    ->required()
+                    ->maxLength(255),
+            ]);
+    }
+
+    public static function table(Table $table): Table
+    {
+        return $table
+            ->columns([
+                Tables\Columns\ViewColumn::make('nama_pengemudi')
+                    ->view('filament.tables.columns.jadwal-pengemudi-nama-with-actions')
+                    ->searchable()
+                    ->sortable(),
+            ])
+            ->filters([
+                //
+            ])
+            ->actions([
+                Tables\Actions\EditAction::make(),
+            ])
+            ->bulkActions([
+                Tables\Actions\BulkActionGroup::make([
+                    Tables\Actions\DeleteBulkAction::make(),
+                ]),
+            ])
+            ->headerActions([
+                Tables\Actions\CreateAction::make(),
+            ]);
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => Pages\ListJadwalPengemudis::route('/'),
+            'create' => Pages\CreateJadwalPengemudi::route('/create'),
+            'edit' => Pages\EditJadwalPengemudi::route('/{record}/edit'),
         ];
     }
 }

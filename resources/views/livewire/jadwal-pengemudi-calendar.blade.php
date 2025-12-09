@@ -1,5 +1,5 @@
-<div>
-    <div class="font-sans">
+<div class="w-full">
+    <div class="font-sans w-full">
         {{-- Header Section --}}
         <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 animate-fade-in">
             <div>
@@ -13,7 +13,7 @@
         </div>
 
         {{-- Main Card --}}
-        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-slate-200 dark:border-gray-700 overflow-hidden flex flex-col h-[calc(100vh-220px)] min-h-[500px]">
+        <div class="bg-white dark:bg-gray-800 overflow-hidden flex flex-col h-[calc(100vh-220px)] min-h-[500px] w-full">
 
             {{-- Toolbar --}}
             <div class="p-4 md:p-5 border-b border-slate-100 dark:border-gray-700 flex flex-col sm:flex-row justify-between items-center gap-4 bg-white dark:bg-gray-800 z-20">
@@ -162,92 +162,124 @@
                 </div>
 
                 {{-- Assign Driver Modal --}}
-                <div
-                    x-data="{ show: @entangle('showAssignDriverModal') }"
-                    x-show="show"
-                    x-on:keydown.escape.window="show = false"
-                    class="fixed inset-0 z-50 flex items-center justify-center p-4"
-                    style="display: none;"
-                >
-                    <div x-on:click="show = false" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm"></div>
-
-                    <div
-                        x-show="show"
-                        x-transition:enter="ease-out duration-300"
-                        x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                        x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
-                        x-transition:leave="ease-in duration-200"
-                        x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
-                        x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
-                        class="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6"
-                    >
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Tambahkan Pengemudi</h3>
-                            <button x-on:click="show = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-                                <x-heroicon-o-x-mark class="w-6 h-6" />
-                            </button>
-                        </div>
-
-                        <form wire:submit.prevent="assignDriver">
-                            <div class="space-y-4">
-                                <div>
-                                    <label for="assignDriverId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pengemudi</label>
-                                    <select
-                                        wire:model="assignDriverId"
-                                        id="assignDriverId"
-                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                    >
-                                        <option value="">Pilih Pengemudi</option>
-                                        @foreach (\App\Models\Staf::orderBy('nama_staf')->get() as $staf)
-                                            <option value="{{ $staf->staf_id }}">{{ $staf->nama_staf }}</option>
-                                        @endforeach
-                                    </select>
-                                    @error('assignDriverId') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                                </div>
-
-                                <div>
-                                    <label for="assignDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tanggal</label>
-                                    <input
-                                        wire:model="assignDate"
-                                        type="date"
-                                        id="assignDate"
-                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                    />
-                                    @error('assignDate') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
-                                </div>
-
-                                <div>
-                                    <label for="keterangan" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Keterangan (Opsional)</label>
-                                    <textarea
-                                        wire:model="keterangan"
-                                        id="keterangan"
-                                        rows="3"
-                                        class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
-                                    ></textarea>
-                                    @error('keterangan') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                            <div
+                                x-data="{ show: @entangle('showAssignDriverModal') }"
+                                x-show="show"
+                                x-on:keydown.escape.window="show = false"
+                                class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                                style="display: none;"
+                            >
+                                <div x-on:click="show = false" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm"></div>
+                
+                                <div
+                                    x-show="show"
+                                    x-transition:enter="ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                                    x-transition:leave="ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                                    x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                    class="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6"
+                                >
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Tambahkan Pengemudi</h3>
+                                        <button x-on:click="show = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                            <x-heroicon-o-x-mark class="w-6 h-6" />
+                                        </button>
+                                    </div>
+                
+                                    <form wire:submit.prevent="assignDriver">
+                                        <div class="space-y-4">
+                                            <div>
+                                                <label for="assignDriverId" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Pengemudi</label>
+                                                <select
+                                                    wire:model="assignDriverId"
+                                                    id="assignDriverId"
+                                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                                >
+                                                    <option value="">Pilih Pengemudi</option>
+                                                    @foreach (\App\Models\Staf::orderBy('nama_staf')->get() as $staf)
+                                                        <option value="{{ $staf->staf_id }}">{{ $staf->nama_staf }}</option>
+                                                    @endforeach
+                                                </select>
+                                                @error('assignDriverId') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                            </div>
+                
+                                            <div>
+                                                <label for="assignDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tanggal</label>
+                                                <input
+                                                    wire:model="assignDate"
+                                                    type="date"
+                                                    id="assignDate"
+                                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                                />
+                                                @error('assignDate') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                            </div>
+                
+                                            <div>
+                                                <label for="keterangan" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Keterangan (Opsional)</label>
+                                                <textarea
+                                                    wire:model="keterangan"
+                                                    id="keterangan"
+                                                    rows="3"
+                                                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-teal-500 focus:ring-teal-500 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+                                                ></textarea>
+                                                @error('keterangan') <span class="text-red-500 text-xs mt-1">{{ $message }}</span> @enderror
+                                            </div>
+                                        </div>
+                
+                                        <div class="mt-6 flex justify-end gap-3">
+                                            <button type="button" x-on:click="show = false" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
+                                                Batal
+                                            </button>
+                                            <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
+                                                Simpan
+                                            </button>
+                                        </div>
+                                    </form>
                                 </div>
                             </div>
+                
+                            {{-- Delete Confirmation Modal --}}
+                            <div
+                                x-data="{ show: @entangle('showDeleteModal') }"
+                                x-show="show"
+                                x-on:keydown.escape.window="show = false"
+                                class="fixed inset-0 z-50 flex items-center justify-center p-4"
+                                style="display: none;"
+                            >
+                                <div x-on:click="show = false" class="fixed inset-0 bg-gray-900/50 backdrop-blur-sm"></div>
+                
+                                <div
+                                    x-show="show"
+                                    x-transition:enter="ease-out duration-300"
+                                    x-transition:enter-start="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                    x-transition:enter-end="opacity-100 translate-y-0 sm:scale-100"
+                                    x-transition:leave="ease-in duration-200"
+                                    x-transition:leave-start="opacity-100 translate-y-0 sm:scale-100"
+                                    x-transition:leave-end="opacity-0 translate-y-4 sm:translate-y-0 sm:scale-95"
+                                    class="relative bg-white dark:bg-gray-800 rounded-xl shadow-xl max-w-md w-full p-6"
+                                >
+                                    <div class="flex justify-between items-center mb-4">
+                                        <h3 class="text-lg font-bold text-gray-900 dark:text-white">Konfirmasi Penghapusan Jadwal</h3>
+                                        <button x-on:click="show = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+                                            <x-heroicon-o-x-mark class="w-6 h-6" />
+                                        </button>
+                                    </div>
+                
+                                    <div class="text-sm text-gray-600 dark:text-gray-400 mb-6">
+                                        Apakah Anda yakin ingin menghapus semua jadwal untuk pengemudi ini? Tindakan ini akan menghapus semua jadwal di semua bulan dan tidak dapat dibatalkan. Data pengemudi itu sendiri tidak akan dihapus.
+                                    </div>
+                
+                                    <div class="flex justify-end gap-3">
+                                        <button type="button" x-on:click="show = false" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
+                                            Batal
+                                        </button>
+                                        <button type="button" wire:click="deleteConfirmed()" class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2" style="display: block !important;">
+                                            Ya, Hapus
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>            </div>
 
-                            <div class="mt-6 flex justify-end gap-3">
-                                <button type="button" x-on:click="show = false" class="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-md hover:bg-gray-200 dark:hover:bg-gray-600">
-                                    Batal
-                                </button>
-                                <button type="submit" class="px-4 py-2 text-sm font-medium text-white bg-teal-600 rounded-md hover:bg-teal-700 focus:outline-none focus:ring-2 focus:ring-teal-500 focus:ring-offset-2">
-                                    Simpan
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-            <script>
-                document.addEventListener('livewire:initialized', () => {
-                    Livewire.on('confirm-driver-deletion', (event) => {
-                        const driverId = event.driverId;
-                        const confirmed = confirm("Apakah Anda yakin ingin menghapus pengemudi ini beserta semua jadwalnya? Tindakan ini tidak dapat dibatalkan.");
-
-                        Livewire.dispatch('driver-deletion-confirmed', { driverId: driverId, confirmed: confirmed });
-                    });
-                });
-            </script>
         </div>

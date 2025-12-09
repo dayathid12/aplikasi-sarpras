@@ -1,3 +1,5 @@
 <x-filament-panels::page>
-    @livewire(\App\Livewire\JadwalPengemudiCalendar::class)
+<div>
+@livewire(\App\Livewire\JadwalPengemudiCalendar::class)
+</div>
 </x-filament-panels::page>

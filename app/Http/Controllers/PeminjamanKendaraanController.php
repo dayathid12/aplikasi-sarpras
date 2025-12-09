@@ -29,7 +29,7 @@ class PeminjamanKendaraanController extends Controller
      */
     public function submit(Request $request)
     {
-        $data = $request->all();
+        $data = $request->input('data', []);
 
         // Validation
         $rules = [
@@ -45,8 +45,6 @@ class PeminjamanKendaraanController extends Controller
             'nama_personil_perwakilan' => 'required|string|max:255',
             'kontak_pengguna_perwakilan' => 'required|string|max:20',
             'status_sebagai' => 'required|in:Mahasiswa,Dosen,Staf,Lainnya',
-            'surat_peminjaman' => 'required|file|mimes:pdf,jpg,png|max:5120',
-            'dokumen_pendukung' => 'nullable|file|mimes:pdf,jpg,png|max:5120',
         ];
 
         $validator = validator($data, $rules);
@@ -89,15 +87,6 @@ class PeminjamanKendaraanController extends Controller
                 'pengemudi_id' => null,
                 'nopol_kendaraan' => null,
             ];
-
-            // Handle file uploads
-            if ($request->hasFile('surat_peminjaman')) {
-                $saveData['surat_peminjaman_kendaraan'] = $request->file('surat_peminjaman')->store('public/dokumen_peminjaman');
-            }
-
-            if ($request->hasFile('dokumen_pendukung')) {
-                $saveData['dokumen_pendukung'] = $request->file('dokumen_pendukung')->store('public/dokumen_peminjaman');
-            }
 
             // Save to database
             $perjalanan = Perjalanan::create($saveData);

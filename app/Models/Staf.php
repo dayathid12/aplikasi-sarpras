@@ -36,6 +36,7 @@ class Staf extends Model
         'rekening',
         'nama_bank',
         'status_aplikasi',
+        'sort_order',
     ];
 
     public function perjalanans()
