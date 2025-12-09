@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Staf extends Model
 {
@@ -42,4 +43,15 @@ class Staf extends Model
         return $this->belongsToMany(Perjalanan::class, 'perjalanan_kendaraans', 'pengemudi_id', 'perjalanan_id', 'staf_id', 'nomor_perjalanan')
                     ->withPivot('kendaraan_nopol', 'asisten_id');
     }
+
+    /**
+     * Get all of the jadwalPengemudis for the Staf
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function jadwalPengemudis(): HasMany
+    {
+        return $this->hasMany(JadwalPengemudi::class, 'staf_id', 'staf_id');
+    }
 }
+
