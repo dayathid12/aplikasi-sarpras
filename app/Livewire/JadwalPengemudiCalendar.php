@@ -6,165 +6,123 @@ use Livewire\Attributes\On;
 use Livewire\Component;
 use Carbon\Carbon;
 use App\Models\Staf;
-use App\Models\Perjalanan;
-use App\Models\Kendaraan;
-use App\Models\PerjalananKendaraan;
-use App\Models\JadwalPengemudi;
+use App\Models\Perjalanan; // Add Perjalanan model
+// use App\Models\Kendaraan; // Kendaraan will be accessed via Perjalanan->kendaraan
+// use App\Models\PerjalananKendaraan; // PerjalananKendaraan will be accessed via Perjalanan->details
+// use App\Models\JadwalPengemudi; // JadwalPengemudi is no longer directly used
 
 class JadwalPengemudiCalendar extends Component
 {
-    public $currentDate;
-    public $search = '';
+    public $currentDate; // Keep for internal date manipulation if needed
+    public $selectedMonth;
+    public $selectedYear;
+    public $selectedDriverId = ''; // For filtering by driver
 
-    public $showAssignDriverModal = false;
-    public $assignDriverId;
-    public $assignDate;
-    public $keterangan = '';
-
-    public array $manualSortOrder = [];
-
-    public $showDeleteModal = false;
-    public $driverToDeleteId;
+    public $drivers = []; // Unique drivers with Perjalanan for the selected month/year
+    public $allDrivers = []; // All staf for the driver filter dropdown
+    public $dates = []; // Unique dates (days) in the selected month/year
+    public $perjalanansByDriverAndDate = []; // Pivoted data
 
     public function mount()
     {
         $this->currentDate = Carbon::now();
-        $this->assignDate = Carbon::now()->format('Y-m-d');
-        
-        // Initialize manualSortOrder from the database
-        $this->manualSortOrder = Staf::orderBy('sort_order')
-                                     ->orderBy('nama_staf')
-                                     ->pluck('staf_id')
-                                     ->toArray();
+        $this->selectedMonth = $this->currentDate->month;
+        $this->selectedYear = $this->currentDate->year;
+        $this->loadPerjalananData();
+    }
 
-        // Ensure all staff have a sort_order. Assign sequential if null.
-        $stafsWithoutOrder = Staf::whereNull('sort_order')->get();
-        if ($stafsWithoutOrder->isNotEmpty()) {
-            $maxOrder = Staf::max('sort_order') ?? 0;
-            foreach ($stafsWithoutOrder as $staf) {
-                $maxOrder++;
-                $staf->sort_order = $maxOrder;
-                $staf->save();
+    public function updatedSelectedMonth($value)
+    {
+        $this->selectedMonth = $value;
+        $this->loadPerjalananData();
+    }
+
+    public function updatedSelectedYear($value)
+    {
+        $this->selectedYear = $value;
+        $this->loadPerjalananData();
+    }
+
+    public function updatedSelectedDriverId($value)
+    {
+        $this->selectedDriverId = $value;
+        $this->loadPerjalananData();
+    }
+
+    public function loadPerjalananData()
+    {
+        $startOfMonth = Carbon::create($this->selectedYear, $this->selectedMonth, 1)->startOfDay();
+        $endOfMonth = Carbon::create($this->selectedYear, $this->selectedMonth, 1)->endOfMonth()->endOfDay();
+
+        // Fetch Perjalanan records for the selected month/year
+        $query = Perjalanan::query()
+            ->whereBetween('waktu_keberangkatan', [$startOfMonth, $endOfMonth])
+            ->with(['pengemudi', 'kendaraan']); // Eager load pengemudi (Staf) and kendaraan
+
+        $perjalanans = $query->get();
+
+        // Filter and process data
+        $this->drivers = collect();
+        $this->dates = collect();
+        $this->perjalanansByDriverAndDate = [];
+
+        // Get all staf for the driver filter dropdown
+        $this->allDrivers = Staf::orderBy('nama_staf')->get();
+
+        foreach ($perjalanans as $perjalanan) {
+            // Ensure Perjalanan has a pengemudi and kendaraan
+            if ($perjalanan->pengemudi->isNotEmpty() && $perjalanan->kendaraan->isNotEmpty()) {
+                foreach ($perjalanan->pengemudi as $pengemudi) {
+                    $driverId = $pengemudi->staf_id;
+                    $driverName = $pengemudi->nama_staf;
+                    $date = Carbon::parse($perjalanan->waktu_keberangkatan)->format('Y-m-d'); // Date for column
+
+                    // Apply driver filter if selected
+                    if ($this->selectedDriverId && $this->selectedDriverId != $driverId) {
+                        continue;
+                    }
+
+                    // Add driver to unique drivers list
+                    if (!$this->drivers->contains('staf_id', $driverId)) {
+                        $this->drivers->push(['staf_id' => $driverId, 'nama_staf' => $driverName]);
+                    }
+
+                    // Add date to unique dates list
+                    if (!$this->dates->contains($date)) {
+                        $this->dates->push($date);
+                    }
+
+                    // Store Perjalanan details for pivoting
+                    if (!isset($this->perjalanansByDriverAndDate[$driverId][$date])) {
+                        $this->perjalanansByDriverAndDate[$driverId][$date] = [];
+                    }
+                    $this->perjalanansByDriverAndDate[$driverId][$date][] = [
+                        'nomor_perjalanan' => $perjalanan->nomor_perjalanan,
+                        'merk_type' => $perjalanan->kendaraan->first()->merk_type ?? 'N/A',
+                        'nopol_kendaraan' => $perjalanan->kendaraan->first()->nopol_kendaraan ?? 'N/A',
+                        'waktu_keberangkatan' => Carbon::parse($perjalanan->waktu_keberangkatan)->format('d M Y H:i'),
+                        'waktu_kepulangan' => Carbon::parse($perjalanan->waktu_kepulangan)->format('d M Y H:i'),
+                        'kota_kabupaten' => $perjalanan->wilayah->nama_wilayah ?? $perjalanan->alamat_tujuan,
+                    ];
+                }
             }
-            // Re-fetch manualSortOrder after assigning default values
-            $this->manualSortOrder = Staf::orderBy('sort_order')
-                                         ->orderBy('nama_staf')
-                                         ->pluck('staf_id')
-                                         ->toArray();
         }
+        // Sort drivers by name
+        $this->drivers = $this->drivers->sortBy('nama_staf')->values();
+
+        // Sort dates chronologically
+        $this->dates = $this->dates->sort()->values();
     }
 
-    public function openAssignDriverModal()
-    {
-        $this->resetAssignDriverForm();
-        $this->showAssignDriverModal = true;
-    }
-
-    public function closeAssignDriverModal()
-    {
-        $this->showAssignDriverModal = false;
-    }
-
-    public function assignDriver()
-    {
-        $this->validate([
-            'assignDriverId' => 'required|exists:stafs,staf_id',
-            'assignDate' => 'required|date',
-            'keterangan' => 'nullable|string|max:255',
-        ]);
-
-        JadwalPengemudi::create([
-            'staf_id' => $this->assignDriverId,
-            'tanggal_jadwal' => $this->assignDate,
-            'keterangan' => $this->keterangan,
-        ]);
-
-        $this->closeAssignDriverModal();
-        $this->dispatch('notify', 'Pengemudi berhasil ditugaskan untuk tanggal ' . Carbon::parse($this->assignDate)->format('d M Y'))->to(JadwalPengemudiCalendar::class);
-        $this->dispatch('refreshCalendar'); // To refresh the calendar data
-    }
-
-    private function resetAssignDriverForm()
-    {
-        $this->assignDriverId = null;
-        $this->assignDate = Carbon::now()->format('Y-m-d');
-        $this->keterangan = '';
-    }
-
-    public function previousMonth()
-    {
-        $this->currentDate->subMonth();
-    }
-
-    public function nextMonth()
-    {
-        $this->currentDate->addMonth();
-    }
-
-    public function deleteDriver($driverId)
-    {
-        $this->driverToDeleteId = $driverId;
-        $this->showDeleteModal = true;
-    }
-
-    public function deleteConfirmed()
-    {
-        $driverId = $this->driverToDeleteId;
-        $driver = Staf::find($driverId);
-
-        if ($driver) {
-            // Delete ALL associated JadwalPengemudi records for this driver, across all months.
-            // The Staf record itself is NOT deleted.
-            $driver->jadwalPengemudis()->delete();
-            
-            $this->dispatch('notify', 'Semua jadwal pengemudi berhasil dihapus.')->to(JadwalPengemudiCalendar::class);
-            $this->dispatch('refreshCalendar');
-        } else {
-            $this->dispatch('notify', 'Pengemudi tidak ditemukan.')->to(JadwalPengemudiCalendar::class);
-        }
-
-        $this->showDeleteModal = false;
-        $this->driverToDeleteId = null;
-    }
-
-    #[On('refreshCalendar')]
-    public function refreshData()
-    {
-        // This method will be called when the 'refreshCalendar' event is dispatched.
-        // Livewire will automatically re-render the component.
-    }
-
-    #[On('update-staf-sort')] // Listen for this event from the frontend
-    public function updateSortOrder(array $newOrder)
-    {
-        foreach ($newOrder as $index => $stafId) {
-            Staf::where('staf_id', $stafId)->update(['sort_order' => $index + 1]);
-        }
-        $this->manualSortOrder = $newOrder; // Update in-memory for immediate re-render
-        $this->dispatch('notify', 'Urutan pengemudi berhasil diperbarui.')->to(JadwalPengemudiCalendar::class);
-        $this->dispatch('refreshCalendar'); // Re-render with new order
-    }
-
-    public function getStafProperty()
-    {
-        $query = Staf::query();
-
-        if ($this->search) {
-            $query->where('nama_staf', 'like', '%' . $this->search . '%')
-                  ->orWhere('nip_staf', 'like', '%' . $this->search . '%');
-        }
-
-        $query->orderBy('sort_order') // Primary sort by sort_order
-              ->orderBy('nama_staf'); // Secondary sort for those without sort_order or new entries
-
-        return $query->with(['jadwalPengemudis' => function ($query) {
-                $query->whereYear('tanggal_jadwal', $this->currentDate->year)
-                      ->whereMonth('tanggal_jadwal', $this->currentDate->month);
-            }])
-            ->get();
-    }
     public function render()
     {
-        return view('livewire.jadwal-pengemudi-calendar');
-    }
+        // Data is already loaded and processed in loadPerjalananData()
+        // No need to re-fetch here, just pass to view
+        $years = range(Carbon::now()->year - 5, Carbon::now()->year + 5); // Example: 5 years before and after
+
+        return view('livewire.jadwal-pengemudi-calendar', [
+            'years' => $years,
+        ]);
+    
+}
 }

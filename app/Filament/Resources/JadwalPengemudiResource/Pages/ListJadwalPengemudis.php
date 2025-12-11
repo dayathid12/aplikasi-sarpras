@@ -13,11 +13,4 @@ class ListJadwalPengemudis extends FilamentPage // Use FilamentPage as base clas
     protected static ?string $title = 'Jadwal Pengemudi'; // Add a title for the page
 
     protected static string $view = 'filament.resources.jadwal-pengemudi-resource.pages.list-jadwal-pengemudis';
-
-    public $currentDate;
-
-    public function mount(): void
-    {
-        $this->currentDate = now()->format('Y-m-d');
-    }
 }
