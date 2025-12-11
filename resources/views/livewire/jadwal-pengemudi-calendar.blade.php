@@ -41,7 +41,22 @@
             </div>
 
             {{-- Table Container --}}
-            <div class="flex-grow overflow-x-auto relative custom-scrollbar">
+            <div
+                x-data="{
+                    stafOrder: @entangle('manualSortOrder').defer,
+                    init() {
+                        new Sortable(this.$refs.stafTableBody, {
+                            animation: 150,
+                            handle: '.drag-handle',
+                            onEnd: (evt) => {
+                                this.stafOrder = Array.from(this.$refs.stafTableBody.children).map(row => row.dataset.stafId);
+                                $wire.dispatch('update-staf-sort', { newOrder: this.stafOrder });
+                            }
+                        });
+                    }
+                }"
+                class="flex-grow overflow-x-auto relative custom-scrollbar"
+            >
                 <table class="w-full text-left border-collapse">
                     <thead class="sticky top-0 z-30 bg-gray-100 dark:bg-gray-800 shadow-sm border-b border-gray-200 dark:border-gray-700">
                         <tr>
@@ -74,12 +89,15 @@
                             @endforeach
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
+                    <tbody x-ref="stafTableBody" class="divide-y divide-gray-200 dark:divide-gray-700">
                         @forelse ($drivers as $driver)
-                            <tr class="group hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-150 ease-in-out">
+                            <tr class="group hover:bg-gray-50 dark:hover:bg-gray-700/30 transition-colors duration-150 ease-in-out" data-staf-id="{{ $driver['staf_id'] }}">
                                 {{-- Sticky Driver Column Body --}}
                                 <td class="sticky left-0 z-20 bg-white dark:bg-gray-800 group-hover:bg-gray-50 dark:group-hover:bg-gray-700/30 p-3 px-4 border-r border-gray-200 dark:border-gray-700 shadow-[4px_0_15px_-4px_rgba(0,0,0,0.08)]">
                                     <div class="flex items-center gap-3">
+                                        <button type="button" class="drag-handle p-0.5 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 cursor-grab rounded-md -ml-1 transition-colors duration-200">
+                                            <x-heroicon-o-bars-3 class="w-4 h-4" />
+                                        </button>
                                         <div class="flex-shrink-0">
                                             {{-- You can add an avatar component here if available --}}
                                             <div class="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-800/50 flex items-center justify-center text-blue-800 dark:text-blue-300 font-semibold text-sm">

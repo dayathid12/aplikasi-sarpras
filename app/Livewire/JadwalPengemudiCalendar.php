@@ -22,11 +22,22 @@ class JadwalPengemudiCalendar extends Component
     public $dates = []; // All dates in the selected month/year
     public $perjalanansByDriverAndDate = []; // Pivoted data
 
+    public $manualSortOrder = []; // New property for manual sorting
+
     public function mount()
     {
         $this->currentDate = Carbon::now();
         $this->selectedMonth = $this->currentDate->month;
         $this->selectedYear = $this->currentDate->year;
+        $this->loadPerjalananData();
+    }
+
+    #[On('update-staf-sort')]
+    public function updateStafSort($newOrder)
+    {
+        $this->manualSortOrder = $newOrder;
+        // Optionally, persist this order to the database if needed
+        // For now, it just reorders the current view
         $this->loadPerjalananData();
     }
 
@@ -61,15 +72,29 @@ class JadwalPengemudiCalendar extends Component
         }
 
         // Fetch all drivers, filtered by search term
-        $this->drivers = Staf::query() // Modified this line to use query()
+        $queriedDrivers = Staf::query() // Modified this line to use query()
             ->when($this->search, function ($query) { // Added this section for search
                 $query->where('nama_staf', 'like', '%' . $this->search . '%');
             })
-            ->orderBy('nama_staf')
-            ->get()
-            ->map(function ($staf) {
-                return ['staf_id' => $staf->staf_id, 'nama_staf' => $staf->nama_staf];
-            })->values();
+            ->get();
+
+        // Apply manual sort order if it exists, otherwise sort by nama_staf
+        if (!empty($this->manualSortOrder)) {
+            $this->drivers = collect($this->manualSortOrder)
+                ->map(function ($stafId) use ($queriedDrivers) {
+                    return $queriedDrivers->firstWhere('staf_id', $stafId);
+                })
+                ->filter() // Remove nulls if some IDs in manualSortOrder are not found
+                ->map(function ($staf) {
+                    return ['staf_id' => $staf->staf_id, 'nama_staf' => $staf->nama_staf];
+                })->values();
+        } else {
+            $this->drivers = $queriedDrivers
+                ->sortBy('nama_staf')
+                ->map(function ($staf) {
+                    return ['staf_id' => $staf->staf_id, 'nama_staf' => $staf->nama_staf];
+                })->values();
+        }
         
         // Fetch Perjalanan records for the selected month/year
         $perjalanans = Perjalanan::query()
