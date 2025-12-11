@@ -29,7 +29,7 @@ class PeminjamanKendaraanController extends Controller
      */
     public function submit(Request $request)
     {
-        $data = $request->input('data', []);
+        $data = $request->except('_token');
 
         // Validation
         $rules = [
@@ -45,6 +45,8 @@ class PeminjamanKendaraanController extends Controller
             'nama_personil_perwakilan' => 'required|string|max:255',
             'kontak_pengguna_perwakilan' => 'required|string|max:20',
             'status_sebagai' => 'required|in:Mahasiswa,Dosen,Staf,Lainnya',
+            'surat_peminjaman' => 'required|file|mimes:pdf,jpg,jpeg,png|max:5120',
+            'dokumen_pendukung' => 'nullable|file|mimes:pdf,jpg,jpeg,png|max:5120',
         ];
 
         $validator = validator($data, $rules);

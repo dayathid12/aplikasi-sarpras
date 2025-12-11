@@ -16,6 +16,7 @@ class JadwalPengemudiCalendar extends Component
     public $currentDate; // Keep for internal date manipulation if needed
     public $selectedMonth;
     public $selectedYear;
+    public $search = ''; // Added this line
 
     public $drivers = []; // All drivers
     public $dates = []; // All dates in the selected month/year
@@ -41,6 +42,11 @@ class JadwalPengemudiCalendar extends Component
         $this->loadPerjalananData();
     }
 
+    public function updatedSearch()
+    {
+        $this->loadPerjalananData();
+    }
+
     public function loadPerjalananData()
     {
         $startOfMonth = Carbon::create($this->selectedYear, $this->selectedMonth, 1)->startOfDay();
@@ -54,10 +60,16 @@ class JadwalPengemudiCalendar extends Component
             $currentDay->addDay();
         }
 
-        // Fetch all drivers
-        $this->drivers = Staf::orderBy('nama_staf')->get()->map(function ($staf) {
-            return ['staf_id' => $staf->staf_id, 'nama_staf' => $staf->nama_staf];
-        })->values();
+        // Fetch all drivers, filtered by search term
+        $this->drivers = Staf::query() // Modified this line to use query()
+            ->when($this->search, function ($query) { // Added this section for search
+                $query->where('nama_staf', 'like', '%' . $this->search . '%');
+            })
+            ->orderBy('nama_staf')
+            ->get()
+            ->map(function ($staf) {
+                return ['staf_id' => $staf->staf_id, 'nama_staf' => $staf->nama_staf];
+            })->values();
         
         // Fetch Perjalanan records for the selected month/year
         $perjalanans = Perjalanan::query()
