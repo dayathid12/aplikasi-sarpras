@@ -34,5 +34,6 @@ class AppServiceProvider extends ServiceProvider
 
         // Register the Livewire component for the public form
         Livewire::component('filament.pages.peminjaman-kendaraan-unpad', PeminjamanKendaraanUnpad::class);
+        Livewire::component('booking-kendaraan-calendar', \App\Livewire\BookingKendaraanCalendar::class);
     }
 }

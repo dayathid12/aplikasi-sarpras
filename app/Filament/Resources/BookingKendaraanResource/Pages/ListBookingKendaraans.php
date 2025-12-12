@@ -3,27 +3,20 @@
 namespace App\Filament\Resources\BookingKendaraanResource\Pages;
 
 use App\Filament\Resources\BookingKendaraanResource;
-use App\Filament\Widgets\BookingKendaraanWidget;
-use App\Models\Perjalanan;
-use Filament\Actions;
-use Filament\Resources\Pages\ListRecords;
-use Filament\Tables;
-use Filament\Tables\Table;
-use Carbon\Carbon;
+use Filament\Resources\Pages\Page as FilamentPage; // Alias Page to avoid conflict
+use App\Livewire\BookingKendaraanCalendar; // Import the Livewire component
+use Filament\Support\Enums\MaxWidth;
 
-class ListBookingKendaraans extends ListRecords
+class ListBookingKendaraans extends FilamentPage // Use FilamentPage as base class
 {
     protected static string $resource = BookingKendaraanResource::class;
 
-    protected function getHeaderActions(): array
+    protected static ?string $title = 'Booking Kendaraan'; // Add a title for the page
+
+    protected static string $view = 'filament.resources.booking-kendaraan-resource.pages.list-booking-kendaraans';
+
+    public function getMaxContentWidth(): MaxWidth
     {
-        return [
-            Actions\Action::make('tambah_kendaraan')
-                ->label('Tambah Kendaraan')
-                ->url(fn () => BookingKendaraanResource::getUrl('create'))
-                ->color('success'),
-        ];
+        return MaxWidth::Full;
     }
-
-
 }
