@@ -1,10 +1,11 @@
 <div class="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-600 dark:text-slate-300 font-sans relative overflow-hidden transition-colors duration-300">
 
-    {{-- Decorative Background Blobs (Soft & Pastel) --}}
+    {{-- Decorative Background Blobs (Lebih Berwarna / Colorful) --}}
     <div class="absolute top-0 left-0 w-full h-full overflow-hidden pointer-events-none z-0">
-        {{-- Menggunakan Teal dan Rose yang lebih soft --}}
-        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-teal-400/10 rounded-full blur-3xl animate-pulse"></div>
-        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-rose-400/10 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+        {{-- Menggunakan warna Indigo, Fuchsia, dan Orange untuk kesan ceria --}}
+        <div class="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-indigo-400/20 rounded-full blur-3xl animate-pulse"></div>
+        <div class="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-fuchsia-400/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 2s;"></div>
+        <div class="absolute top-[20%] right-[20%] w-[30%] h-[30%] bg-orange-300/20 rounded-full blur-3xl animate-pulse" style="animation-delay: 4s;"></div>
     </div>
 
     <div class="relative z-10 w-full p-6 lg:p-10 max-w-[1920px] mx-auto">
@@ -12,7 +13,9 @@
         {{-- Header Section --}}
         <div class="flex flex-col md:flex-row justify-between items-end mb-10 gap-6 animate-fade-in-up">
             <div>
-               
+                <h1 class="text-3xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-fuchsia-600 dark:from-indigo-400 dark:to-fuchsia-400 mb-2">
+                    Jadwal Operasional
+                </h1>
                 <p class="text-lg text-slate-500 dark:text-slate-400 font-medium max-w-2xl leading-relaxed">
                     Platform manajemen mobilitas staf. Kelola rute dan waktu secara efisien.
                 </p>
@@ -20,32 +23,31 @@
         </div>
 
         {{-- Main Glass Card --}}
-        <div class="backdrop-blur-xl bg-white/80 dark:bg-slate-900/60 rounded-[2rem] shadow-xl shadow-slate-200/50 dark:shadow-none border border-white/50 dark:border-slate-700 overflow-hidden flex flex-col min-h-[700px] w-full ring-1 ring-slate-900/5">
+        <div class="backdrop-blur-xl bg-white/90 dark:bg-slate-900/80 rounded-[2rem] shadow-2xl shadow-indigo-200/50 dark:shadow-none border border-white/50 dark:border-slate-700 overflow-hidden flex flex-col min-h-[700px] w-full ring-1 ring-slate-900/5">
 
             {{-- Toolbar --}}
-            <div class="p-6 border-b border-slate-100 dark:border-slate-700/60 flex flex-col lg:flex-row justify-between items-center gap-5 bg-white/50 dark:bg-slate-800/40">
+            <div class="p-6 border-b border-slate-200 dark:border-slate-700/60 flex flex-col lg:flex-row justify-between items-center gap-5 bg-slate-50/50 dark:bg-slate-800/40">
 
                 {{-- Date Filters --}}
                 <div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
                     <div class="relative w-full sm:w-48 group">
-                        {{-- Focus ring diganti ke Teal --}}
-                        <select wire:model.live="selectedMonth" class="appearance-none w-full pl-4 pr-10 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all shadow-sm hover:border-teal-300 cursor-pointer">
+                        <select wire:model.live="selectedMonth" class="appearance-none w-full pl-4 pr-10 py-3 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm cursor-pointer hover:border-indigo-300">
                             @foreach (range(1, 12) as $month)
                                 <option value="{{ $month }}">{{ Carbon\Carbon::create()->month($month)->locale('id')->translatedFormat('F') }}</option>
                             @endforeach
                         </select>
-                        <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-400 group-hover:text-teal-500 transition-colors">
+                        <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-400 group-hover:text-indigo-500 transition-colors">
                             <x-heroicon-m-chevron-down class="w-4 h-4" />
                         </div>
                     </div>
 
                     <div class="relative w-full sm:w-32 group">
-                        <select wire:model.live="selectedYear" class="appearance-none w-full pl-4 pr-10 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-semibold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-teal-500/50 focus:border-teal-500 transition-all shadow-sm hover:border-teal-300 cursor-pointer">
+                        <select wire:model.live="selectedYear" class="appearance-none w-full pl-4 pr-10 py-3 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-4 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm cursor-pointer hover:border-indigo-300">
                             @foreach ($years as $year)
                                 <option value="{{ $year }}">{{ $year }}</option>
                             @endforeach
                         </select>
-                        <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-400 group-hover:text-teal-500 transition-colors">
+                        <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-400 group-hover:text-indigo-500 transition-colors">
                             <x-heroicon-m-chevron-down class="w-4 h-4" />
                         </div>
                     </div>
@@ -56,9 +58,9 @@
                     <input
                         type="search"
                         placeholder="Cari nama atau NIP..."
-                        class="block w-full pl-10 pr-4 py-3 text-sm text-slate-700 dark:text-white bg-slate-50/50 dark:bg-slate-800/50 border-0 ring-1 ring-slate-200 dark:ring-slate-700 rounded-2xl placeholder-slate-400 focus:ring-2 focus:ring-teal-500 focus:bg-white dark:focus:bg-slate-800 transition-all duration-200 ease-in-out"
+                        class="block w-full pl-10 pr-4 py-3 text-sm font-medium text-slate-700 dark:text-white bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl placeholder-slate-400 focus:ring-4 focus:ring-fuchsia-500/20 focus:border-fuchsia-500 transition-all duration-200 ease-in-out"
                     >
-                    <div class="absolute inset-y-0 left-0 flex items-center px-3 pointer-events-none text-slate-400 group-focus-within:text-teal-500 transition-colors">
+                    <div class="absolute inset-y-0 left-0 flex items-center px-3 pointer-events-none text-slate-400 group-focus-within:text-fuchsia-500 transition-colors">
                          <x-heroicon-o-magnifying-glass class="w-5 h-5" />
                     </div>
                 </div>
@@ -71,7 +73,7 @@
                     init() {
                         new Sortable(this.$refs.stafTableBody, {
                             animation: 200,
-                            ghostClass: 'bg-teal-50/50', // Ghost color teal
+                            ghostClass: 'bg-indigo-100',
                             handle: '.drag-handle',
                             onEnd: (evt) => {
                                 this.stafOrder = Array.from(this.$refs.stafTableBody.children).map(row => row.dataset.stafId);
@@ -83,12 +85,14 @@
                 class="flex-grow overflow-auto custom-scrollbar"
             >
                 <table class="w-max min-w-full border-separate border-spacing-0">
-                    <thead class="sticky top-0 z-40">
+                    <thead class="sticky top-0 z-40 shadow-sm">
                         <tr>
                             {{-- Sticky Driver Header --}}
-                            <th class="sticky left-0 z-50 p-4 min-w-[320px] bg-slate-50 dark:bg-slate-800/50 backdrop-blur-md border-b border-r border-slate-200 dark:border-slate-700 text-left">
-                                <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                    <x-heroicon-o-users class="w-4 h-4 text-teal-500" />
+                            <th class="sticky left-0 z-50 p-4 min-w-[320px] bg-slate-100 dark:bg-slate-800 border-b border-r border-slate-300 dark:border-slate-600 text-left">
+                                <div class="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-slate-600 dark:text-slate-300">
+                                    <div class="p-1.5 bg-indigo-100 dark:bg-indigo-900/50 rounded-lg text-indigo-600 dark:text-indigo-400">
+                                        <x-heroicon-o-users class="w-4 h-4" />
+                                    </div>
                                     <span>Personil Pengemudi</span>
                                 </div>
                             </th>
@@ -101,23 +105,27 @@
                                     $isToday = $date->isToday();
                                 @endphp
                                 <th @class([
-                                    'p-2 w-40 text-center border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 backdrop-blur-md',
-                                    'bg-rose-50/30 dark:bg-rose-900/10' => $isWeekend,
-                                    'z-20' => $isToday,
+                                    'p-2 w-40 text-center border-b border-r border-slate-200 dark:border-slate-700 transition-colors',
+                                    'bg-red-100 dark:bg-red-900/40 border-red-200 dark:border-red-800' => $isWeekend && !$isToday, // Warna Header Weekend (Merah)
+                                    'bg-blue-600 text-white border-blue-700 shadow-md transform scale-y-105 origin-top z-50' => $isToday, // Warna Header Hari Ini (Biru Kuat)
+                                    'bg-slate-50 dark:bg-slate-800' => !$isWeekend && !$isToday,
                                 ])>
-                                    <div @class([
-                                        "flex flex-col items-center justify-center py-2 px-3 rounded-2xl transition-all duration-300",
-                                        "ring-1 ring-inset ring-rose-200/50 bg-rose-50 dark:bg-rose-900/20 dark:ring-rose-800/50" => $isWeekend,
-                                        "bg-teal-500 text-white shadow-lg shadow-teal-500/30 scale-105 ring-0" => $isToday,
-                                        "hover:bg-white dark:hover:bg-slate-700" => !$isWeekend && !$isToday
-                                    ])>
-                                        <span class="text-[10px] font-bold uppercase tracking-widest {{ $isToday ? 'text-teal-100' : 'text-slate-400' }}">
+                                    <div class="flex flex-col items-center justify-center py-1">
+                                        {{-- Nama Hari --}}
+                                        <span class="text-[10px] font-bold uppercase tracking-widest mb-1
+                                            {{ $isToday ? 'text-blue-100' : ($isWeekend ? 'text-red-600 dark:text-red-400' : 'text-slate-500') }}">
                                             {{ $date->locale('id')->translatedFormat('D') }}
                                         </span>
-                                        <span class="text-xl font-black {{ $isToday ? 'text-white' : ($isWeekend ? 'text-rose-600 dark:text-rose-400' : 'text-slate-700 dark:text-slate-200') }}">
+
+                                        {{-- Tanggal Angka --}}
+                                        <div class="text-xl font-black leading-none mb-1
+                                            {{ $isToday ? 'text-white' : ($isWeekend ? 'text-red-700 dark:text-red-300' : 'text-slate-700 dark:text-slate-200') }}">
                                             {{ $date->day }}
-                                        </span>
-                                        <span class="text-[10px] font-medium {{ $isToday ? 'text-teal-100' : 'text-slate-400' }}">
+                                        </div>
+
+                                        {{-- Bulan --}}
+                                        <span class="text-[10px] font-medium
+                                            {{ $isToday ? 'text-blue-200' : ($isWeekend ? 'text-red-500/80 dark:text-red-400/80' : 'text-slate-400') }}">
                                             {{ $date->locale('id')->translatedFormat('M') }}
                                         </span>
                                     </div>
@@ -128,20 +136,20 @@
 
                     <tbody x-ref="stafTableBody">
                         @forelse ($drivers as $driver)
-                            <tr class="group even:bg-slate-50 dark:even:bg-slate-800/20" data-staf-id="{{ $driver['staf_id'] }}">
+                            <tr class="group" data-staf-id="{{ $driver['staf_id'] }}">
 
                                 {{-- Sticky Driver Info Cell --}}
-                                <td class="sticky left-0 z-30 p-4 bg-white dark:bg-slate-900 border-r border-b border-slate-200 dark:border-slate-700 shadow-[4px_0_24px_-12px_rgba(0,0,0,0.05)] transition-colors group-hover:bg-slate-100 dark:group-hover:bg-slate-800 min-h-[160px] even:bg-slate-50 dark:even:bg-slate-800/20">
+                                <td class="sticky left-0 z-30 p-4 bg-white dark:bg-slate-900 border-r border-b border-slate-200 dark:border-slate-700 transition-all group-hover:bg-slate-50 dark:group-hover:bg-slate-800 min-h-[160px]">
                                     <div class="flex items-center gap-4">
-                                        <button type="button" class="drag-handle p-2 text-slate-400 hover:text-teal-500 cursor-move rounded-xl hover:bg-teal-100/50 dark:hover:bg-teal-900/30 transition-all">
+                                        <button type="button" class="drag-handle p-2 text-slate-300 hover:text-indigo-500 cursor-move rounded-xl hover:bg-indigo-50 dark:hover:bg-indigo-900/30 transition-all">
                                             <x-heroicon-o-bars-3 class="w-5 h-5" />
                                         </button>
 
                                         <div class="flex flex-col min-w-0">
-                                            <div class="text-sm font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+                                            <div class="text-sm font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
                                                 {{ $driver['nama_staf'] }}
                                             </div>
-                                            <div class="text-xs font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap mt-0.5">
+                                            <div class="text-xs font-mono text-slate-500 dark:text-slate-400 whitespace-nowrap mt-0.5 px-2 py-0.5 bg-slate-100 dark:bg-slate-800 rounded w-fit">
                                                 {{ $driver['nip'] ?? '-' }}
                                             </div>
                                         </div>
@@ -157,41 +165,48 @@
                                         $cellPerjalanans = $perjalanansByDriverAndDate[$driver['staf_id']][$dateString] ?? [];
                                     @endphp
                                     <td @class([
-                                        'p-2 min-h-[160px] align-top border-b border-slate-200 dark:border-slate-700 transition-colors',
-                                        'relative',
-                                        'bg-teal-50/40 dark:bg-teal-900/10' => $isToday,
-                                        'border-x border-teal-200/50 dark:border-teal-800/30' => $isToday,
-                                        'border-r' => !$isToday,
-                                        'bg-rose-50/40 dark:bg-rose-900/10' => $isWeekend && !$isToday,
-                                        'bg-white dark:bg-slate-900 group-hover:bg-slate-100 dark:group-hover:bg-slate-800' => !$isWeekend && !$isToday,
-                                        'even:bg-slate-50 dark:even:bg-slate-800/20'
+                                        'p-2 min-h-[160px] align-top border-b border-r border-slate-200 dark:border-slate-700 transition-colors',
+                                        // LOGIKA WARNA KOLOM
+                                        'bg-red-50/80 dark:bg-red-900/10' => $isWeekend && !$isToday, // Warna soft merah untuk kolom weekend
+                                        'bg-blue-50/70 dark:bg-blue-900/20 border-blue-100 dark:border-blue-800' => $isToday, // Warna soft biru untuk kolom hari ini
+                                        'bg-white dark:bg-slate-900' => !$isWeekend && !$isToday, // Warna default putih
+                                        // Hover effect untuk row
+                                        'group-hover:brightness-95 dark:group-hover:brightness-110'
                                     ])>
                                         <div class="flex flex-col gap-2 h-full">
                                             @forelse ($cellPerjalanans as $perjalanan)
-                                                {{-- CARD ITEM (Soft Teal Style) --}}
+                                                {{-- CARD ITEM --}}
                                                 <div
-                                                    class="relative w-full p-3 rounded-xl border border-teal-200/80 dark:border-teal-800/50 bg-white/70 dark:bg-slate-800/50 shadow-sm hover:shadow-lg hover:border-teal-300 dark:hover:border-teal-600 cursor-pointer transition-all duration-200 group/card transform hover:-translate-y-0.5"
+                                                    class="relative w-full p-3 rounded-xl border shadow-sm hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-200 group/card
+                                                    {{-- Card Styling based on column context --}}
+                                                    {{ $isToday
+                                                        ? 'bg-white border-blue-200 dark:bg-slate-800 dark:border-blue-700'
+                                                        : ($isWeekend
+                                                            ? 'bg-white border-red-200 dark:bg-slate-800 dark:border-red-800'
+                                                            : 'bg-slate-50 border-slate-200 dark:bg-slate-800 dark:border-slate-700')
+                                                    }}"
                                                 >
-                                                    <div class="flex justify-between items-start mb-1.5">
-                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold bg-teal-100/80 border border-teal-200/80 text-teal-800 dark:bg-teal-900/70 dark:text-teal-200 dark:border-teal-800/70">
+                                                    <div class="flex justify-between items-start mb-2">
+                                                        <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border
+                                                            {{ $isToday ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-slate-200 text-slate-600 border-slate-300' }}">
                                                             #{{ $perjalanan['nomor_perjalanan'] }}
                                                         </span>
                                                     </div>
 
                                                     <div class="space-y-1">
-                                                        <p class="text-xs font-bold text-slate-800 dark:text-slate-100 whitespace-nowrap group-hover/card:text-teal-600 dark:group-hover/card:text-teal-400">
+                                                        <p class="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">
                                                             {{ $perjalanan['kota_kabupaten'] }}
                                                         </p>
-                                                        <p class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
-                                                            <x-heroicon-m-truck class="w-3 h-3 text-teal-500" />
-                                                            <span class="whitespace-nowrap font-medium">{{ $perjalanan['nopol_kendaraan'] }}</span>
+                                                        <p class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
+                                                            <x-heroicon-m-truck class="w-3 h-3 {{ $isToday ? 'text-blue-500' : 'text-slate-400' }}" />
+                                                            <span>{{ $perjalanan['nopol_kendaraan'] }}</span>
                                                         </p>
                                                     </div>
                                                 </div>
                                             @empty
                                                 {{-- Empty State (Dot subtle) --}}
-                                                <div class="h-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                                                    <div class="w-1.5 h-1.5 rounded-full bg-slate-300 dark:bg-slate-700"></div>
+                                                <div class="h-full w-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                                                    <div class="w-1.5 h-1.5 rounded-full {{ $isWeekend ? 'bg-red-200' : 'bg-slate-200' }}"></div>
                                                 </div>
                                             @endforelse
                                         </div>
@@ -202,8 +217,8 @@
                             <tr>
                                 <td colspan="{{ count($dates) + 1 }}" class="p-20">
                                     <div class="flex flex-col items-center justify-center text-center">
-                                        <div class="w-24 h-24 bg-slate-100 dark:bg-slate-800/50 rounded-full flex items-center justify-center mb-4 ring-1 ring-slate-200/50">
-                                            <x-heroicon-o-calendar-days class="w-10 h-10 text-slate-400" />
+                                        <div class="w-24 h-24 bg-gradient-to-br from-indigo-100 to-purple-100 dark:from-slate-800 dark:to-slate-800 rounded-full flex items-center justify-center mb-4 ring-4 ring-white dark:ring-slate-700 shadow-xl">
+                                            <x-heroicon-o-calendar-days class="w-10 h-10 text-indigo-400" />
                                         </div>
                                         <h3 class="text-lg font-bold text-slate-700 dark:text-white mb-1">Jadwal Kosong</h3>
                                         <p class="text-slate-500 max-w-sm text-sm">Tidak ada data perjalanan ditemukan untuk periode ini.</p>
@@ -216,27 +231,27 @@
             </div>
 
             {{-- Footer --}}
-            <div class="px-6 py-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/80 flex justify-between items-center text-xs font-medium text-slate-500">
+            <div class="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/80 flex justify-between items-center text-xs font-medium text-slate-500">
                 <span class="flex items-center gap-2">
                     <span class="flex h-2 w-2 relative">
-                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75"></span>
-                        <span class="relative inline-flex rounded-full h-2 w-2 bg-teal-500"></span>
+                        <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75"></span>
+                        <span class="relative inline-flex rounded-full h-2 w-2 bg-indigo-500"></span>
                     </span>
                     Menampilkan {{ count($drivers) }} personil aktif
                 </span>
-                <span class="opacity-60 font-mono">v2.0</span>
+                <span class="opacity-60 font-mono">v2.1 Colorful Edition</span>
             </div>
         </div>
     </div>
 
-    {{-- Styles for clean scrollbar (Tweak colors slightly) --}}
+    {{-- Styles for clean scrollbar --}}
     <style>
-        .custom-scrollbar::-webkit-scrollbar { height: 8px; width: 8px; }
+        .custom-scrollbar::-webkit-scrollbar { height: 10px; width: 10px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb {
             background: #cbd5e1;
             border-radius: 100vh;
-            border: 2px solid transparent;
+            border: 3px solid transparent;
             background-clip: content-box;
         }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
