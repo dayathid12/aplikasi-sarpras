@@ -149,33 +149,35 @@
                                 <div class="flex flex-col gap-2 h-full">
                                     @forelse ($cellPerjalanans as $perjalanan)
                                         {{-- CARD ITEM --}}
-                                        <div
-                                            class="relative w-full p-3 rounded-xl border shadow-sm hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-200 group/card
-                                            {{-- Card Styling based on column context --}}
-                                            {{ $isToday
-                                                ? 'bg-white border-blue-200 dark:bg-slate-800 dark:border-blue-700'
-                                                : ($isWeekend
-                                                    ? 'bg-white border-red-200 dark:bg-slate-800 dark:border-red-800'
-                                                    : 'bg-slate-50 border-slate-200 dark:bg-slate-800 dark:border-slate-700')
-                                            }}"
-                                        >
-                                            <div class="flex justify-between items-start mb-2">
-                                                <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border
-                                                    {{ $isToday ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-slate-200 text-slate-600 border-slate-300' }}">
-                                                    #{{ $perjalanan['nomor_perjalanan'] }}
-                                                </span>
-                                            </div>
+                                        <a href="{{ \App\Filament\Resources\PerjalananResource::getUrl('edit', ['record' => $perjalanan['id']]) }}?returnTo=calendar">
+                                            <div
+                                                class="relative w-full p-3 rounded-xl border shadow-sm hover:shadow-lg hover:-translate-y-1 cursor-pointer transition-all duration-200 group/card
+                                                {{-- Card Styling based on column context --}}
+                                                {{ $isToday
+                                                    ? 'bg-white border-blue-200 dark:bg-slate-800 dark:border-blue-700'
+                                                    : ($isWeekend
+                                                        ? 'bg-white border-red-200 dark:bg-slate-800 dark:border-red-800'
+                                                        : 'bg-slate-50 border-slate-200 dark:bg-slate-800 dark:border-slate-700')
+                                                }}"
+                                            >
+                                                <div class="flex justify-between items-start mb-2">
+                                                    <span class="inline-flex items-center px-2 py-0.5 rounded-md text-[10px] font-bold border
+                                                        {{ $isToday ? 'bg-blue-100 text-blue-700 border-blue-200' : 'bg-slate-200 text-slate-600 border-slate-300' }}">
+                                                        #{{ $perjalanan['nomor_perjalanan'] }}
+                                                    </span>
+                                                </div>
 
-                                            <div class="space-y-1">
-                                                <p class="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">
-                                                    {{ $perjalanan['kota_kabupaten'] }}
-                                                </p>
-                                                <p class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
-                                                    <x-heroicon-m-truck class="w-3 h-3 {{ $isToday ? 'text-blue-500' : 'text-slate-400' }}" />
-                                                    <span>{{ $perjalanan['nopol_kendaraan'] }}</span>
-                                                </p>
+                                                <div class="space-y-1">
+                                                    <p class="text-xs font-bold text-slate-800 dark:text-slate-100 leading-tight">
+                                                        {{ $perjalanan['kota_kabupaten'] }}
+                                                    </p>
+                                                    <p class="text-[10px] text-slate-500 dark:text-slate-400 flex items-center gap-1.5 font-medium">
+                                                        <x-heroicon-m-truck class="w-3 h-3 {{ $isToday ? 'text-blue-500' : 'text-slate-400' }}" />
+                                                        <span>{{ $perjalanan['nopol_kendaraan'] }}</span>
+                                                    </p>
+                                                </div>
                                             </div>
-                                        </div>
+                                        </a>
                                     @empty
                                         {{-- Empty State (Dot subtle) --}}
                                         <div class="h-full w-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">

@@ -120,6 +120,7 @@ class JadwalPengemudiCalendar extends Component
                         // Ensure the date is within the currently displayed month and the driver exists
                         if (isset($this->perjalanansByDriverAndDate[$driverId][$dateKey])) {
                             $this->perjalanansByDriverAndDate[$driverId][$dateKey][] = [
+                                'id' => $perjalanan->id, // Add the ID here
                                 'nomor_perjalanan' => $perjalanan->nomor_perjalanan,
                                 'merk_type' => $perjalanan->kendaraan->first()->merk_type ?? 'N/A',
                                 'nopol_kendaraan' => $perjalanan->kendaraan->first()->nopol_kendaraan ?? 'N/A',

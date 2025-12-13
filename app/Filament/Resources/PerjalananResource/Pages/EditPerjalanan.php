@@ -6,6 +6,8 @@ use App\Filament\Resources\PerjalananResource;
 use App\Filament\Resources\BaseEditRecord;
 use Filament\Actions;
 use Filament\Actions\Action;
+use Illuminate\Support\Facades\Request; // Import Request facade
+use App\Filament\Pages\ScheduleOverview; // Import ScheduleOverview page
 
 class EditPerjalanan extends BaseEditRecord
 {
@@ -19,5 +21,14 @@ class EditPerjalanan extends BaseEditRecord
                 ->label('Copy Link Pelacakan')
                 ->view('filament.resources.perjalanan-resource.actions.copy-link', ['record' => $this->record]),
         ];
+    }
+
+    protected function getRedirectUrl(): string
+    {
+        if (Request::query('returnTo') === 'calendar') {
+            return ScheduleOverview::getUrl();
+        }
+
+        return parent::getRedirectUrl();
     }
 }
