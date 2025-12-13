@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Perjalanan extends Model
 {
@@ -45,7 +46,9 @@ class Perjalanan extends Model
         'token',
         'tujuan_wilayah_id',
         'unit_kerja_id',
+        'entry_pengeluaran_id', // Menambahkan ini agar bisa di-fill
     ];
+
 
     protected $attributes = [
         'status_operasional' => 'Belum Ditetapkan',
@@ -113,5 +116,10 @@ class Perjalanan extends Model
     public function asisten()
     {
         return $this->hasManyThrough(Staf::class, PerjalananKendaraan::class, 'perjalanan_id', 'staf_id', 'nomor_perjalanan', 'asisten_id');
+    }
+
+    public function entryPengeluaran(): BelongsTo
+    {
+        return $this->belongsTo(EntryPengeluaran::class, 'entry_pengeluaran_id');
     }
 }
