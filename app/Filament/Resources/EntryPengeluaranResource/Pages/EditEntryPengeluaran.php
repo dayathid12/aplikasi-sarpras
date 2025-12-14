@@ -27,97 +27,98 @@ class EditEntryPengeluaran extends EditRecord
                 ->form([
                     Select::make('pengemudi_id')
                         ->label('Nama Pengemudi')
-                        ->options(Staf::all()->pluck('nama_staf', 'id'))
+                        ->options(function () {
+                            $pengemudiIds = \App\Models\PerjalananKendaraan::whereHas('perjalanan', function (Builder $query) {
+                                $query->whereIn('status_perjalanan', ['Terjadwal', 'Selesai']);
+                            })
+                            ->whereNotNull('pengemudi_id')
+                            ->pluck('pengemudi_id')
+                            ->unique();
+                    
+                            return Staf::whereIn('staf_id', $pengemudiIds)->pluck('nama_staf', 'staf_id');
+                        })
                         ->searchable()
                         ->live()
                         ->afterStateUpdated(function (\Filament\Forms\Set $set) {
-                            $set('nomor_perjalanan', null);
+                            $set('perjalanan_id', null);
                             $set('waktu_berangkat', null);
                             $set('alamat_tujuan', null);
                             $set('unit_kerja', null);
-                            $set('nama_pengemudi', null); // Ini akan diisi nanti
-                            $set('nopol_kendaraan', null); // Ini akan diisi nanti
+                            $set('nopol_kendaraan', null);
                         }),
 
-                                        Select::make('nomor_perjalanan')
-                                            ->label('Nomor Perjalanan')
-                                            ->options(function (\Filament\Forms\Get $get) {
-                                                if (!$get('pengemudi_id')) {
-                                                    return [];
-                                                }
-                                                // Mengambil Perjalanan yang terkait dengan pengemudi yang dipilih
-                                                $perjalanans = Perjalanan::where('pengemudi_id', $get('pengemudi_id'))
-                                                                            ->with(['pengemudi', 'kendaraan']) // Memuat relasi pengemudi dan kendaraan
-                                                                            ->get();
+                    Select::make('perjalanan_id')
+                        ->label('Nomor Perjalanan')
+                        ->options(function (\Filament\Forms\Get $get) {
+                            $pengemudiId = $get('pengemudi_id');
+                            if (!$pengemudiId) {
+                                return [];
+                            }
+                        
+                            $perjalananIds = \App\Models\PerjalananKendaraan::where('pengemudi_id', $pengemudiId)
+                                ->whereHas('perjalanan', function (Builder $query) {
+                                    $query->whereIn('status_perjalanan', ['Terjadwal', 'Selesai']);
+                                })
+                                ->pluck('perjalanan_id');
+                        
+                            return Perjalanan::whereIn('nomor_perjalanan', $perjalananIds)
+                                ->get()
+                                ->pluck('nomor_perjalanan', 'nomor_perjalanan');
+                        })
+                        ->searchable()
+                        ->live()
+                        ->afterStateUpdated(function (\Filament\Forms\Set $set, \Filament\Forms\Get $get, ?string $state) {
+                            if (empty($state)) {
+                                $set('waktu_berangkat', null);
+                                $set('alamat_tujuan', null);
+                                $set('unit_kerja', null);
+                                $set('nopol_kendaraan', null);
+                                return;
+                            }
+                        
+                            $perjalanan = Perjalanan::with('unitKerja')->find($state);
+                            if (!$perjalanan) {
+                                return;
+                            }
+                        
+                            $pengemudiId = $get('pengemudi_id');
 
-                                                // Memformat opsi untuk menampilkan Nomor Perjalanan, Nama Pengemudi, dan Nomor Polisi Kendaraan
-                                                return $perjalanans->mapWithKeys(function ($perjalanan) {
-                                                    $namaPengemudi = $perjalanan->pengemudi ? $perjalanan->pengemudi->nama_staf : 'N/A';
-                                                    $nopolKendaraan = $perjalanan->kendaraan ? $perjalanan->kendaraan->nopol_kendaraan : 'N/A';
-                                                    return [$perjalanan->nomor_perjalanan => "{$perjalanan->nomor_perjalanan} - {$namaPengemudi} - {$nopolKendaraan}"];
-                                                });
-                                            })
-                                            ->searchable()
-                                            ->live()
-                                            ->afterStateUpdated(function (\Filament\Forms\Set $set, ?string $state) {
-                                                if ($state) {
-                                                    $perjalanan = Perjalanan::with(['unitKerja', 'pengemudi', 'kendaraan'])
-                                                                            ->where('nomor_perjalanan', $state)
-                                                                            ->first();
-                                                    if ($perjalanan) {
-                                                        $set('waktu_berangkat', $perjalanan->waktu_keberangkatan);
-                                                        $set('alamat_tujuan', $perjalanan->alamat_tujuan);
-                                                        $set('unit_kerja', $perjalanan->unitKerja ? $perjalanan->unitKerja->nama_unit_kerja : 'N/A');
-                                                        $set('nama_pengemudi', $perjalanan->pengemudi ? $perjalanan->pengemudi->nama_staf : 'N/A');
-                                                        $set('nopol_kendaraan', $perjalanan->kendaraan ? $perjalanan->kendaraan->nopol_kendaraan : 'N/A');
-                                                    } else {
-                                                        $set('waktu_berangkat', null);
-                                                        $set('alamat_tujuan', null);
-                                                        $set('unit_kerja', null);
-                                                        $set('nama_pengemudi', null);
-                                                        $set('nopol_kendaraan', null);
-                                                    }
-                                                } else {
-                                                    $set('waktu_berangkat', null);
-                                                    $set('alamat_tujuan', null);
-                                                    $set('unit_kerja', null);
-                                                    $set('nama_pengemudi', null);
-                                                    $set('nopol_kendaraan', null);
-                                                }
-                                            }),
+                            $perjalananKendaraan = \App\Models\PerjalananKendaraan::where('perjalanan_id', $state)
+                                ->where('pengemudi_id', $pengemudiId)
+                                ->first();
+                        
+                            $set('waktu_berangkat', $perjalanan->waktu_keberangkatan?->format('d/m/Y H:i'));
+                            $set('alamat_tujuan', $perjalanan->alamat_tujuan);
+                            $set('unit_kerja', $perjalanan->unitKerja?->nama_unit_kerja);
+                            $set('nopol_kendaraan', $perjalananKendaraan?->kendaraan_nopol);
+                        }),
+                    
+                    TextInput::make('waktu_berangkat')
+                        ->label('Waktu Berangkat')
+                        ->disabled(),
 
-                                        TextInput::make('nomor_perjalanan_display') // Field baru untuk Nomor Perjalanan
-                                            ->label('Nomor Perjalanan')
-                                            ->disabled()
-                                            ->extraAttributes(['class' => 'font-bold text-primary-600']), // Opsional: untuk menonjolkan
+                    TextInput::make('alamat_tujuan')
+                        ->label('Alamat Tujuan')
+                        ->disabled(),
 
-                                        TextInput::make('waktu_berangkat')
-                                            ->label('Waktu Berangkat')
-                                            ->disabled(),
+                    TextInput::make('unit_kerja')
+                        ->label('Unit Kerja/Fakultas/UKM')
+                        ->disabled(),
 
-                                        TextInput::make('alamat_tujuan')
-                                            ->label('Alamat Tujuan')
-                                            ->disabled(),
-
-                                        TextInput::make('unit_kerja')
-                                            ->label('Unit Kerja/Fakultas/UKM')
-                                            ->disabled(),
-
-                                        TextInput::make('nama_pengemudi')
-                                            ->label('Nama Pengemudi')
-                                            ->disabled(),
-
-                                        TextInput::make('nopol_kendaraan') // Field baru untuk Nomor Polisi Kendaraan
-                                            ->label('Nomor Polisi Kendaraan')
-                                            ->disabled(),                ])
+                    TextInput::make('nopol_kendaraan')
+                        ->label('Nomor Polisi Kendaraan')
+                        ->disabled(),
+                ])
                 ->action(function (array $data) {
-                    // Logic to attach the selected Perjalanan to the current EntryPengeluaran
                     $entryPengeluaran = $this->record;
-                    $perjalanan = Perjalanan::where('nomor_perjalanan', $data['nomor_perjalanan'])->first();
+                    $perjalanan = Perjalanan::find($data['perjalanan_id']);
 
                     if ($perjalanan && $entryPengeluaran) {
+                        // Here you should decide what to do. Do you want to associate one perjalanan
+                        // to one entry_pengeluaran? If so, this is correct.
                         $perjalanan->entry_pengeluaran_id = $entryPengeluaran->id;
                         $perjalanan->save();
+
                         \Filament\Notifications\Notification::make()
                             ->title('Perjalanan berhasil ditambahkan!')
                             ->success()
