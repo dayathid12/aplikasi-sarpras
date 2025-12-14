@@ -49,6 +49,11 @@ class Perjalanan extends Model
         'entry_pengeluaran_id', // Menambahkan ini agar bisa di-fill
     ];
 
+    protected $casts = [
+        'waktu_keberangkatan' => 'datetime',
+        'waktu_kepulangan' => 'datetime',
+    ];
+
 
     protected $attributes = [
         'status_operasional' => 'Belum Ditetapkan',

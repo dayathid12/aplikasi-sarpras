@@ -6,6 +6,7 @@ use App\Filament\Resources\EntryPengeluaranResource;
 use App\Models\Kendaraan;
 use App\Models\Perjalanan;
 use App\Models\Staf; // Tambahkan ini
+use App\Models\PerjalananKendaraan;
 use Filament\Actions;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
@@ -20,102 +21,101 @@ class EditEntryPengeluaran extends EditRecord
 
     protected function getHeaderActions(): array
     {
+        $recordId = $this->record->id;
+
         return [
             Actions\DeleteAction::make(),
             Actions\Action::make('addPerjalanan')
                 ->label('Tambahkan Perjalanan')
                 ->form([
-                    Select::make('pengemudi_id')
-                        ->label('Nama Pengemudi')
-                        ->options(function () {
-                            $pengemudiIds = \App\Models\PerjalananKendaraan::whereHas('perjalanan', function (Builder $query) {
-                                $query->whereIn('status_perjalanan', ['Terjadwal', 'Selesai']);
-                            })
-                            ->whereNotNull('pengemudi_id')
-                            ->pluck('pengemudi_id')
-                            ->unique();
-                    
-                            return Staf::whereIn('staf_id', $pengemudiIds)->pluck('nama_staf', 'staf_id');
-                        })
-                        ->searchable()
-                        ->live()
-                        ->afterStateUpdated(function (\Filament\Forms\Set $set) {
-                            $set('perjalanan_id', null);
-                            $set('waktu_berangkat', null);
-                            $set('alamat_tujuan', null);
-                            $set('unit_kerja', null);
-                            $set('nopol_kendaraan', null);
-                        }),
-
-                    Select::make('perjalanan_id')
-                        ->label('Nomor Perjalanan')
-                        ->options(function (\Filament\Forms\Get $get) {
-                            $pengemudiId = $get('pengemudi_id');
-                            if (!$pengemudiId) {
-                                return [];
-                            }
-                        
-                            $perjalananIds = \App\Models\PerjalananKendaraan::where('pengemudi_id', $pengemudiId)
-                                ->whereHas('perjalanan', function (Builder $query) {
-                                    $query->whereIn('status_perjalanan', ['Terjadwal', 'Selesai']);
+                    Select::make('perjalanan_kendaraan_id')
+                        ->label('Pilih Perjalanan')
+                        ->options(function () use ($recordId) {
+                            $perjalanans = Perjalanan::with(['wilayah', 'unitKerja', 'details.pengemudi', 'details.kendaraan'])
+                                ->whereIn('status_perjalanan', ['Terjadwal', 'Selesai'])
+                                ->where(function (Builder $query) use ($recordId) {
+                                    $query->whereNull('entry_pengeluaran_id')
+                                          ->orWhere('entry_pengeluaran_id', $recordId);
                                 })
-                                ->pluck('perjalanan_id');
-                        
-                            return Perjalanan::whereIn('nomor_perjalanan', $perjalananIds)
-                                ->get()
-                                ->pluck('nomor_perjalanan', 'nomor_perjalanan');
+                                ->get();
+
+                            $options = [];
+                            foreach ($perjalanans as $perjalanan) {
+                                foreach ($perjalanan->details as $detail) {
+                                    $namaPengemudi = $detail->pengemudi?->nama_staf ?: 'N/A';
+                                    $nomorPerjalanan = $perjalanan->nomor_perjalanan;
+                                    $waktu = $perjalanan->waktu_keberangkatan?->format('d/m/y H:i') ?: 'N/A';
+                                    $alamat = $perjalanan->alamat_tujuan ?: 'N/A';
+                                    $kota = $perjalanan->wilayah?->nama_wilayah ?: 'N/A';
+                                    $unitKerja = $perjalanan->unitKerja?->nama_unit_kerja ?: 'N/A';
+                                    $nopol = $detail->kendaraan_nopol ?: 'N/A';
+                                    
+                                    $label = "{$namaPengemudi} | {$nomorPerjalanan} | {$nopol} | {$waktu} | {$alamat} | {$kota} | {$unitKerja}";
+                                    
+                                    // The key is the ID of the detail record, ensuring uniqueness
+                                    $options[$detail->id] = $label;
+                                }
+                            }
+                            return $options;
                         })
                         ->searchable()
                         ->live()
-                        ->afterStateUpdated(function (\Filament\Forms\Set $set, \Filament\Forms\Get $get, ?string $state) {
+                        ->afterStateUpdated(function (\Filament\Forms\Set $set, ?string $state) {
                             if (empty($state)) {
+                                $set('nama_pengemudi', null);
+                                $set('nomor_perjalanan', null);
                                 $set('waktu_berangkat', null);
                                 $set('alamat_tujuan', null);
+                                $set('kota_kabupaten', null);
                                 $set('unit_kerja', null);
                                 $set('nopol_kendaraan', null);
                                 return;
                             }
-                        
-                            $perjalanan = Perjalanan::with('unitKerja')->find($state);
-                            if (!$perjalanan) {
+
+                            $detail = PerjalananKendaraan::with(['perjalanan.wilayah', 'perjalanan.unitKerja', 'pengemudi', 'kendaraan'])->find($state);
+                            if (!$detail || !$detail->perjalanan) {
                                 return;
                             }
-                        
-                            $pengemudiId = $get('pengemudi_id');
+                            
+                            $perjalanan = $detail->perjalanan;
 
-                            $perjalananKendaraan = \App\Models\PerjalananKendaraan::where('perjalanan_id', $state)
-                                ->where('pengemudi_id', $pengemudiId)
-                                ->first();
-                        
+                            $set('nama_pengemudi', $detail->pengemudi?->nama_staf);
+                            $set('nomor_perjalanan', $perjalanan->nomor_perjalanan);
                             $set('waktu_berangkat', $perjalanan->waktu_keberangkatan?->format('d/m/Y H:i'));
                             $set('alamat_tujuan', $perjalanan->alamat_tujuan);
+                            $set('kota_kabupaten', $perjalanan->wilayah?->nama_wilayah);
                             $set('unit_kerja', $perjalanan->unitKerja?->nama_unit_kerja);
-                            $set('nopol_kendaraan', $perjalananKendaraan?->kendaraan_nopol);
+                            $set('nopol_kendaraan', $detail->kendaraan_nopol);
                         }),
-                    
+
+                    TextInput::make('nama_pengemudi')
+                        ->label('Nama Pengemudi')
+                        ->disabled(),
+                    TextInput::make('nomor_perjalanan')
+                        ->label('Nomor Perjalanan')
+                        ->disabled(),
                     TextInput::make('waktu_berangkat')
                         ->label('Waktu Berangkat')
                         ->disabled(),
-
                     TextInput::make('alamat_tujuan')
                         ->label('Alamat Tujuan')
                         ->disabled(),
-
+                    TextInput::make('kota_kabupaten')
+                        ->label('Kota Kabupaten')
+                        ->disabled(),
                     TextInput::make('unit_kerja')
                         ->label('Unit Kerja/Fakultas/UKM')
                         ->disabled(),
-
                     TextInput::make('nopol_kendaraan')
                         ->label('Nomor Polisi Kendaraan')
                         ->disabled(),
                 ])
                 ->action(function (array $data) {
                     $entryPengeluaran = $this->record;
-                    $perjalanan = Perjalanan::find($data['perjalanan_id']);
+                    $detail = PerjalananKendaraan::find($data['perjalanan_kendaraan_id']);
 
-                    if ($perjalanan && $entryPengeluaran) {
-                        // Here you should decide what to do. Do you want to associate one perjalanan
-                        // to one entry_pengeluaran? If so, this is correct.
+                    if ($detail && $entryPengeluaran) {
+                        $perjalanan = $detail->perjalanan;
                         $perjalanan->entry_pengeluaran_id = $entryPengeluaran->id;
                         $perjalanan->save();
 
