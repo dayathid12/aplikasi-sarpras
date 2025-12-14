@@ -80,6 +80,7 @@ class EntryPengeluaranResource extends Resource
                     ->sortable()
                     ->toggleable(isToggledHiddenByDefault: true),
             ])
+            ->defaultSort('nomor_berkas', 'desc')
             ->filters([
                 //
             ])
@@ -96,7 +97,7 @@ class EntryPengeluaranResource extends Resource
     public static function getRelations(): array
     {
         return [
-            //
+            RelationManagers\RincianPengeluaranRelationManagerRelationManager::class,
         ];
     }
 

@@ -16,4 +16,9 @@ class EntryPengeluaran extends Model
     {
         return $this->hasMany(Perjalanan::class, 'entry_pengeluaran_id');
     }
+
+    public function rincianPengeluarans(): HasMany
+    {
+        return $this->hasMany(RincianPengeluaran::class);
+    }
 }

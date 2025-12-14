@@ -26,7 +26,7 @@ class EditEntryPengeluaran extends EditRecord
         return [
             Actions\DeleteAction::make(),
             Actions\Action::make('addPerjalanan')
-                ->label('Tambahkan Perjalanan')
+                ->label('Tambahkan Pengeluaran Perjalanan')
                 ->form([
                     Select::make('perjalanan_kendaraan_id')
                         ->label('Pilih Perjalanan')
@@ -49,9 +49,9 @@ class EditEntryPengeluaran extends EditRecord
                                     $kota = $perjalanan->wilayah?->nama_wilayah ?: 'N/A';
                                     $unitKerja = $perjalanan->unitKerja?->nama_unit_kerja ?: 'N/A';
                                     $nopol = $detail->kendaraan_nopol ?: 'N/A';
-                                    
+
                                     $label = "{$namaPengemudi} | {$nomorPerjalanan} | {$nopol} | {$waktu} | {$alamat} | {$kota} | {$unitKerja}";
-                                    
+
                                     // The key is the ID of the detail record, ensuring uniqueness
                                     $options[$detail->id] = $label;
                                 }
@@ -76,7 +76,7 @@ class EditEntryPengeluaran extends EditRecord
                             if (!$detail || !$detail->perjalanan) {
                                 return;
                             }
-                            
+
                             $perjalanan = $detail->perjalanan;
 
                             $set('nama_pengemudi', $detail->pengemudi?->nama_staf);
