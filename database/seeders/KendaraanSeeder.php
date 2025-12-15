@@ -1084,16 +1084,7 @@ class KendaraanSeeder extends Seeder
                 'nomor_mesin' => '2NRF625637',
                 'penggunaan' => 'Direktorat Sarana Prasarana dan Manajemen Aset',
             ],
-            [
-                'nopol_kendaraan' => 'D 1002 DUP',
-                'merk_type' => 'Toyota Kijang Innova 2.0 V',
-                'jenis_kendaraan' => 'Minibus',
-                'warna_tanda' => 'Hitam',
-                'tahun_pembuatan' => 2017,
-                'nomor_rangka' => 'MHFGW8EM2H1018338',
-                'nomor_mesin' => '1TR A400658',
-                'penggunaan' => 'Direktorat Sarana Prasarana dan Manajemen Aset',
-            ],
+
             [
                 'nopol_kendaraan' => 'D 1003 DUP',
                 'merk_type' => 'Toyota Kijang Innova 2.0 V',
@@ -1356,12 +1347,12 @@ class KendaraanSeeder extends Seeder
             ],
         ];
 
-        // Mendapatkan nopol_kendaraan yang sudah ada di database untuk menghindari duplikasi
-        $existingNopol = Kendaraan::pluck('nopol_kendaraan')->toArray();
+        // Mendapatkan nomor_rangka yang sudah ada di database untuk menghindari duplikasi
+        $existingNomorRangka = Kendaraan::pluck('nomor_rangka')->toArray();
 
-        // Menyaring data baru yang nopol_kendaraan-nya belum ada di database
-        $filteredData = array_filter($data, function ($item) use ($existingNopol) {
-            return !in_array($item['nopol_kendaraan'], $existingNopol);
+        // Menyaring data baru yang nomor_rangka-nya belum ada di database
+        $filteredData = array_filter($data, function ($item) use ($existingNomorRangka) {
+            return !in_array($item['nomor_rangka'], $existingNomorRangka);
         });
 
         // Memasukkan data ke database

@@ -534,73 +534,67 @@
     </div>
 
     <!-- SUCCESS MODAL -->
-    <!-- Container Utama Modal (Default: hidden/opacity-0, diaktifkan via JS) -->
-    <div id="successModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none">
+    <div id="successModal" class="fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none p-4">
 
-        <!-- Card Content -->
-        <div id="modalContent" class="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 p-6 relative transform scale-90 opacity-0 transition-all duration-300 max-h-[95vh] overflow-y-auto mt-10">
+        <!-- Wrapper for animation and positioning -->
+        <div id="modalWrapper" class="relative w-full max-w-md transform scale-90 opacity-0 transition-all duration-300">
 
-          
-
-            <!-- Bagian Icon Premium (Floating) -->
-            <div class="flex justify-center -mt-20 mb-6 relative z-20">
+            <!-- Floating Icon -->
+            <div class="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 z-20">
                 <!-- Efek Glow Belakang -->
-                <div class="absolute top-6 left-1/2 -translate-x-1/2 w-20 h-20 bg-green-400 rounded-full blur-2xl opacity-40"></div>
-
-                <!-- Lingkaran Utama -->
+                <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-20 h-20 bg-green-400 rounded-full blur-2xl opacity-40"></div>
                 <div class="success-glow relative w-28 h-28 bg-gradient-to-tr from-green-500 to-emerald-400 rounded-full flex items-center justify-center border-[6px] border-white shadow-2xl animate-pop-in">
-                    <i class="fa-solid fa-check text-white text-5xl drop-shadow-md transform transition-transform hover:scale-110 duration-200"></i>
+                    <i class="fa-solid fa-check text-white text-5xl drop-shadow-md"></i>
                 </div>
             </div>
 
-            <!-- Konten Teks -->
-            <div class="text-center px-2 pt-2">
-                <h2 class="text-2xl font-bold text-gray-800 mb-2 tracking-tight">Berhasil!</h2>
-                <p class="text-gray-600 mb-6 leading-relaxed">
-                    Permohonan peminjaman kendaraan berhasil diajukan.
-                </p>
+            <!-- Card Content -->
+            <div id="modalContent" class="bg-white rounded-2xl shadow-2xl w-full pt-20 p-6 max-h-[90vh] overflow-y-auto">
 
-                <!-- Box Notifikasi WhatsApp -->
-                <div class="bg-green-50 border border-green-100 rounded-xl p-4 mb-4 flex items-start text-left animate-bounce-short shadow-sm">
-                    <div class="flex-shrink-0 mr-3 mt-1">
-                        <i class="fa-brands fa-whatsapp text-green-600 text-2xl"></i>
-                    </div>
-                    <div>
-                        <h3 class="text-sm font-semibold text-green-800 mb-1">Langkah Selanjutnya</h3>
-                        <p class="text-xs text-green-700 leading-tight">
-                            Cek notifikasi pada nomor Whatsapp Anda untuk mendapatkan link tracking atau coppy link di bawah.
-                        </p>
-                    </div>
-                </div>
-
-                <!-- Box Link Tracking -->
-                <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 text-left shadow-sm animate-bounce-short" style="animation-delay: 0.1s;">
-
-
-                    <p class="text-xs text-yellow-700 mb-3 leading-relaxed">
-                        Gunakan informasi di bawah ini untuk melacak progres pengajuan Anda secara real-time.
+                <!-- Konten Teks -->
+                <div class="text-center">
+                    <h2 class="text-2xl font-bold text-gray-800 mb-2 tracking-tight">Berhasil!</h2>
+                    <p class="text-gray-600 mb-6 leading-relaxed">
+                        Permohonan peminjaman kendaraan berhasil diajukan.
                     </p>
 
-
-
-                    <div class="bg-white border border-yellow-300 rounded-lg p-3 flex items-center justify-between shadow-inner group relative">
-                        <div class="overflow-hidden mr-2 w-full">
-                            <p class="text-[10px] text-gray-400 mb-0.5 uppercase tracking-wide">Link Tracking:</p>
-                            <code id="trackingUrl" class="text-gray-800 font-mono text-xs block truncate select-all"></code>
+                    <!-- Box Notifikasi WhatsApp -->
+                    <div class="bg-green-50 border border-green-100 rounded-xl p-4 mb-4 flex items-start text-left animate-bounce-short shadow-sm">
+                        <div class="flex-shrink-0 mr-3 mt-1">
+                            <i class="fa-brands fa-whatsapp text-green-600 text-2xl"></i>
                         </div>
-                        <button onclick="copyTrackingLink()" class="flex-shrink-0 p-2 text-gray-400 hover:text-yellow-600 hover:bg-yellow-50 rounded-md transition-colors relative" title="Salin Link" id="copyTrackingLinkBtn">
-                            <i id="copyTrackingLinkIcon" class="fa-regular fa-copy text-lg"></i>
-                            <span id="copyTrackingLinkTooltip" class="absolute -top-8 -left-2 bg-gray-800 text-white text-[10px] py-1 px-2 rounded opacity-0 transition-opacity duration-200 pointer-events-none">Disalin!</span>
-                        </button>
+                        <div>
+                            <h3 class="text-sm font-semibold text-green-800 mb-1">Langkah Selanjutnya</h3>
+                            <p class="text-xs text-green-700 leading-tight">
+                                Cek notifikasi pada nomor Whatsapp Anda untuk mendapatkan link tracking atau coppy link di bawah.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Box Link Tracking -->
+                    <div class="bg-yellow-50 border border-yellow-200 rounded-xl p-4 mb-6 text-left shadow-sm animate-bounce-short" style="animation-delay: 0.1s;">
+                        <p class="text-xs text-yellow-700 mb-3 leading-relaxed">
+                            Gunakan informasi di bawah ini untuk melacak progres pengajuan Anda secara real-time.
+                        </p>
+                        <div class="bg-white border border-yellow-300 rounded-lg p-3 flex items-center justify-between shadow-inner group relative">
+                            <div class="overflow-hidden mr-2 w-full">
+                                <p class="text-[10px] text-gray-400 mb-0.5 uppercase tracking-wide">Link Tracking:</p>
+                                <code id="trackingUrl" class="text-gray-800 font-mono text-xs block truncate select-all"></code>
+                            </div>
+                            <button onclick="copyTrackingLink()" class="flex-shrink-0 p-2 text-gray-400 hover:text-yellow-600 hover:bg-yellow-50 rounded-md transition-colors relative" title="Salin Link" id="copyTrackingLinkBtn">
+                                <i id="copyTrackingLinkIcon" class="fa-regular fa-copy text-lg"></i>
+                                <span id="copyTrackingLinkTooltip" class="absolute -top-8 -left-2 bg-gray-800 text-white text-[10px] py-1 px-2 rounded opacity-0 transition-opacity duration-200 pointer-events-none">Disalin!</span>
+                            </button>
+                        </div>
                     </div>
                 </div>
-            </div>
 
-            <!-- Tombol Aksi -->
-            <div class="mt-2">
-                <button onclick="closeModalAndReload()" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3.5 rounded-xl transition-all duration-200 shadow-md transform active:scale-95 text-base">
-                    OK, Mengerti
-                </button>
+                <!-- Tombol Aksi -->
+                <div class="mt-2">
+                    <button onclick="closeModalAndReload()" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-medium py-3.5 rounded-xl transition-all duration-200 shadow-md transform active:scale-95 text-base">
+                        OK, Mengerti
+                    </button>
+                </div>
             </div>
         </div>
     </div>
@@ -609,23 +603,23 @@
         // --- MODAL LOGIC ---
         function openModal(trackingUrl) {
             const modal = document.getElementById('successModal');
-            const content = document.getElementById('modalContent');
+            const wrapper = document.getElementById('modalWrapper');
             document.getElementById('trackingUrl').innerText = trackingUrl;
             modal.classList.remove('opacity-0', 'pointer-events-none');
             setTimeout(() => {
-                content.classList.remove('scale-90', 'opacity-0');
-                content.classList.add('scale-100', 'opacity-100');
+                wrapper.classList.remove('scale-90', 'opacity-0');
+                wrapper.classList.add('scale-100', 'opacity-100');
             }, 50);
         }
 
         function closeModal() {
             const modal = document.getElementById('successModal');
-            const content = document.getElementById('modalContent');
-            content.classList.remove('scale-100', 'opacity-100');
-            content.classList.add('scale-90', 'opacity-0');
+            const wrapper = document.getElementById('modalWrapper');
+            wrapper.classList.remove('scale-100', 'opacity-100');
+            wrapper.classList.add('scale-90', 'opacity-0');
             setTimeout(() => {
                 modal.classList.add('opacity-0', 'pointer-events-none');
-            }, 200);
+            }, 300); // Increased duration to match animation
         }
 
         function closeModalAndReload() {

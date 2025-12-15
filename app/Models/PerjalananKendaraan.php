@@ -29,7 +29,7 @@ class PerjalananKendaraan extends Model
      */
     public function perjalanan(): BelongsTo
     {
-        return $this->belongsTo(Perjalanan::class, 'perjalanan_id', 'nomor_perjalanan');
+        return $this->belongsTo(Perjalanan::class);
     }
 
     /**

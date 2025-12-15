@@ -12,7 +12,6 @@ class Perjalanan extends Model
 {
     use HasFactory;
 
-    protected $primaryKey = 'nomor_perjalanan';
 
     protected $fillable = [
         'nomor_perjalanan',
@@ -63,9 +62,14 @@ class Perjalanan extends Model
     {
         parent::boot();
         static::creating(function ($model) {
+            // Get the next ID
+            $nextId = (static::max('id') ?? 0) + 1;
+
+            if (empty($model->nomor_perjalanan)) {
+                $model->nomor_perjalanan = str_pad($nextId, 3, '0', STR_PAD_LEFT) . '|' . date('my');
+            }
             if (empty($model->no_surat_tugas)) {
-                $nextNumber = static::max('nomor_perjalanan') + 1;
-                $model->no_surat_tugas = 'ST-' . str_pad($nextNumber, 4, '0', STR_PAD_LEFT) . '/' . date('Y');
+                $model->no_surat_tugas = 'ST-' . str_pad($nextId, 4, '0', STR_PAD_LEFT) . '/' . date('Y');
             }
             if (empty($model->token)) {
                 $model->token = (string) \Illuminate\Support\Str::uuid();

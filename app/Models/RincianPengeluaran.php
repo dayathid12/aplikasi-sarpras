@@ -19,6 +19,7 @@ class RincianPengeluaran extends Model
         'alamat_tujuan',
         'nama_unit_kerja',
         'nopol_kendaraan',
+        'kota_kabupaten',
         'biaya_parkir',
         'upload_bukti_parkir',
         'total',
@@ -31,5 +32,10 @@ class RincianPengeluaran extends Model
     public function entryPengeluaran(): BelongsTo
     {
         return $this->belongsTo(EntryPengeluaran::class);
+    }
+
+    public function perjalananKendaraan(): BelongsTo
+    {
+        return $this->belongsTo(PerjalananKendaraan::class, 'perjalanan_id');
     }
 }

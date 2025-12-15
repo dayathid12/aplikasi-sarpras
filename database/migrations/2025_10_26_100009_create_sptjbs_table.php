@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('sptjbs', function (Blueprint $table) {
             $table->string('no_sptjb')->primary();
-            $table->foreignId('nomor_perjalanan')->constrained('perjalanans', 'nomor_perjalanan');
+            $table->foreignId('perjalanan_id')->constrained('perjalanans', 'id')->cascadeOnDelete();
             $table->text('uraian')->nullable();
             $table->string('penerima')->nullable();
             $table->string('file_document')->nullable();

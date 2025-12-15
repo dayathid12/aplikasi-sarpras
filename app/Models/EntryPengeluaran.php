@@ -10,6 +10,13 @@ class EntryPengeluaran extends Model
 {
     use HasFactory;
 
+    /**
+     * The table associated with the model.
+     *
+     * @var string
+     */
+    protected $table = 'entry_pengeluarans'; // Ganti dengan nama tabel Anda yang sebenarnya
+
     protected $fillable = ['nomor_berkas', 'nama_berkas'];
 
     public function perjalanans(): HasMany

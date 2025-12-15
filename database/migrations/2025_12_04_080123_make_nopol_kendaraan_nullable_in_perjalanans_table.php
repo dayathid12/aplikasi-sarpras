@@ -11,9 +11,9 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('perjalanans', function (Blueprint $table) {
-            $table->string('nopol_kendaraan')->nullable()->change();
-        });
+        // Schema::table('perjalanans', function (Blueprint $table) {
+        //     $table->string('nopol_kendaraan')->nullable()->change();
+        // });
     }
 
     /**
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('perjalanans', function (Blueprint $table) {
-            $table->string('nopol_kendaraan')->change();
-        });
+        // Schema::table('perjalanans', function (Blueprint $table) {
+        //     $table->string('nopol_kendaraan')->change();
+        // });
     }
 };

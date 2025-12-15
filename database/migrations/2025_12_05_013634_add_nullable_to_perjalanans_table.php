@@ -11,10 +11,10 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('perjalanans', function (Blueprint $table) {
-            $table->foreignId('pengemudi_id')->nullable()->change();
-            $table->string('nopol_kendaraan')->nullable()->change();
-        });
+        // Schema::table('perjalanans', function (Blueprint $table) {
+        //     $table->foreignId('pengemudi_id')->nullable()->change();
+        //     $table->string('nopol_kendaraan')->nullable()->change();
+        // });
     }
 
     /**

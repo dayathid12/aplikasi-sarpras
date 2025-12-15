@@ -9,7 +9,8 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('perjalanans', function (Blueprint $table) {
-            $table->id('nomor_perjalanan');
+            $table->id();
+            $table->string('nomor_perjalanan')->unique();
             $table->dateTime('waktu_keberangkatan');
             $table->dateTime('waktu_kepulangan')->nullable();
             $table->string('status_perjalanan');
@@ -34,8 +35,6 @@ return new class extends Migration
             $table->string('kontak_pengguna')->nullable();
             $table->foreignId('pengemudi_id')->constrained('stafs', 'staf_id');
             $table->foreignId('asisten_id')->nullable()->constrained('stafs', 'staf_id');
-            $table->string('nopol_kendaraan');
-            $table->foreign('nopol_kendaraan')->references('nopol_kendaraan')->on('kendaraans');
             $table->foreignId('tujuan_wilayah_id')->constrained('wilayahs', 'wilayah_id');
 
             $table->timestamps();

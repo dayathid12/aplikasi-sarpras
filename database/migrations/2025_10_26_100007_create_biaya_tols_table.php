@@ -8,15 +8,18 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('biaya_tols', function (Blueprint $table) {
-            $table->id('tol_id');
-            $table->foreignId('nomor_perjalanan')->constrained('perjalanans', 'nomor_perjalanan');
-            $table->string('lokasi_tol');
-            $table->string('kode_kartu_tol');
-            $table->decimal('biaya_tol', 15, 2);
-            $table->string('gambar_bukti')->nullable();
-            $table->timestamps();
-        });
+        if (!Schema::hasTable('biaya_tols')) {
+            Schema::create('biaya_tols', function (Blueprint $table) {
+                $table->id('tol_id');
+                $table->string('nomor_perjalanan');
+                $table->foreign('nomor_perjalanan')->references('nomor_perjalanan')->on('perjalanans');
+                $table->string('lokasi_tol');
+                $table->string('kode_kartu_tol');
+                $table->decimal('biaya_tol', 15, 2);
+                $table->string('gambar_bukti')->nullable();
+                $table->timestamps();
+            });
+        }
     }
 
     public function down(): void

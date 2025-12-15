@@ -17,7 +17,7 @@ return new class extends Migration
             
             // Foreign key ke tabel 'perjalanans'
             $table->unsignedBigInteger('perjalanan_id');
-            $table->foreign('perjalanan_id')->references('nomor_perjalanan')->on('perjalanans')->cascadeOnDelete();
+            $table->foreign('perjalanan_id')->references('id')->on('perjalanans')->cascadeOnDelete();
 
             // Foreign key ke tabel 'kendaraans' (nopol_kendaraan adalah PK dan string)
             $table->string('kendaraan_nopol');
@@ -58,14 +58,7 @@ return new class extends Migration
         // Hapus tabel baru
         Schema::dropIfExists('perjalanan_kendaraans');
 
-        // Tambahkan kembali kolom lama ke tabel perjalanans
-        Schema::table('perjalanans', function (Blueprint $table) {
-            $table->string('nopol_kendaraan')->nullable()->after('status_perjalanan');
-            $table->unsignedBigInteger('pengemudi_id')->nullable()->after('nopol_kendaraan');
-            
-            // Buat kembali foreign key constraints
-            $table->foreign('nopol_kendaraan')->references('nopol_kendaraan')->on('kendaraans');
-            $table->foreign('pengemudi_id')->references('staf_id')->on('stafs');
-        });
+        // Note: The columns 'nopol_kendaraan' and 'pengemudi_id' are now managed by
+        // the create_perjalanans_table migration, so they are not re-added here.
     }
 };

@@ -49,7 +49,7 @@ class RincianPengeluaranRelationManagerRelationManager extends RelationManager
                         $perjalanan = $perjalananKendaraan->perjalanan;
                         $unitKerjaNama = $perjalanan->unitKerja->nama_unit_kerja ?? 'Tidak Ada Unit Kerja';
                         $wilayahNama = $perjalanan->wilayah->nama_wilayah ?? 'Tidak Ada Wilayah';
-                        $waktuKeberangkatanFormatted = $perjalanan->waktu_keberangkatan ? $perjalanan->waktu_keberangkatan->format('d/m/Y H:i') : 'Tidak Ada Waktu';
+                        $waktuKeberangkatanFormatted = $perjalanan->waktu_keberangkatan ? $perjalanan->waktu_keberangkatan->format('d/m/Y') : 'Tidak Ada Waktu';
 
                         $driverName = $perjalananKendaraan->pengemudi ? $perjalananKendaraan->pengemudi->nama_staf : 'Tidak Ada Pengemudi';
                         $vehicleNopol = $perjalananKendaraan->kendaraan ? $perjalananKendaraan->kendaraan->nopol_kendaraan : 'Tidak Ada Kendaraan';
@@ -109,9 +109,23 @@ class RincianPengeluaranRelationManagerRelationManager extends RelationManager
                 TextInput::make('nomor_perjalanan')
                     ->label('Nomor Perjalanan')
                     ->disabled(),
-                DateTimePicker::make('waktu_keberangkatan')
+                TextInput::make('waktu_keberangkatan')
                     ->label('Waktu Berangkat ')
-                    ->disabled(),
+                    ->readOnly()
+                    ->formatStateUsing(function (?string $state): ?string {
+                        \Illuminate\Support\Facades\Log::debug('Waktu Keberangkatan State: ' . $state);
+                        if (empty($state)) {
+                            return null;
+                        }
+                        try {
+                            $parsedCarbon = \Carbon\Carbon::parse($state);
+                            \Illuminate\Support\Facades\Log::debug('Waktu Keberangkatan Parsed Carbon: ' . $parsedCarbon->toDateTimeString());
+                            return $parsedCarbon->format('d F Y');
+                        } catch (\Exception $e) {
+                            \Illuminate\Support\Facades\Log::error("Failed to parse date for waktu_keberangkatan: {$state} - {$e->getMessage()}");
+                            return $state; // Return original state if parsing fails
+                        }
+                    }),
                 TextInput::make('alamat_tujuan')
                     ->label('Alamat Tujuan')
                     ->disabled(),
@@ -136,20 +150,20 @@ class RincianPengeluaranRelationManagerRelationManager extends RelationManager
         return $table
             ->recordTitleAttribute('nomor_perjalanan')
             ->columns([
-                Tables\Columns\TextColumn::make('nomor_perjalanan')
+                Tables\Columns\TextColumn::make('perjalananKendaraan.perjalanan.nomor_perjalanan')
                     ->label('Nomor Perjalanan'),
-                Tables\Columns\TextColumn::make('nama_pengemudi')
+                Tables\Columns\TextColumn::make('perjalananKendaraan.pengemudi.nama_staf')
                     ->label('Nama Pengemudi'),
-                Tables\Columns\TextColumn::make('waktu_keberangkatan')
+                Tables\Columns\TextColumn::make('perjalananKendaraan.perjalanan.waktu_keberangkatan')
                     ->label('Waktu Berangkat')
-                    ->dateTime(),
-                Tables\Columns\TextColumn::make('alamat_tujuan')
+                    ->date('d/m/Y'),
+                Tables\Columns\TextColumn::make('perjalananKendaraan.perjalanan.alamat_tujuan')
                     ->label('Alamat Tujuan'),
-                Tables\Columns\TextColumn::make('nama_unit_kerja')
+                Tables\Columns\TextColumn::make('perjalananKendaraan.perjalanan.unitKerja.nama_unit_kerja')
                     ->label('Unit Kerja/Fakultas/UKM'),
-                Tables\Columns\TextColumn::make('nopol_kendaraan')
+                Tables\Columns\TextColumn::make('perjalananKendaraan.kendaraan.nopol_kendaraan')
                     ->label('Nomor Polisi Kendaraan'),
-                Tables\Columns\TextColumn::make('kota_kabupaten')
+                Tables\Columns\TextColumn::make('perjalananKendaraan.perjalanan.wilayah.nama_wilayah')
                     ->label('Kota Kabupaten'),
             ])
             ->filters([
@@ -158,10 +172,7 @@ class RincianPengeluaranRelationManagerRelationManager extends RelationManager
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
             ])
-            ->actions([
-                Tables\Actions\EditAction::make(),
-                Tables\Actions\DeleteAction::make(),
-            ])
+
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),
@@ -217,7 +228,7 @@ class RincianPengeluaranRelationManagerRelationManager extends RelationManager
             $perjalanan = $pk->perjalanan;
             $unitKerjaNama = $perjalanan->unitKerja->nama_unit_kerja ?? 'Tidak Ada Unit Kerja';
             $wilayahNama = $perjalanan->wilayah->nama_wilayah ?? 'Tidak Ada Wilayah';
-            $waktuKeberangkatanFormatted = $perjalanan->waktu_keberangkatan ? $perjalanan->waktu_keberangkatan->format('d/m/Y H:i') : 'Tidak Ada Waktu';
+            $waktuKeberangkatanFormatted = $pk->perjalanan->waktu_keberangkatan ? $pk->perjalanan->waktu_keberangkatan->format('d/m/Y') : 'Tidak Ada Waktu';
 
             $driverName = $pk->pengemudi ? $pk->pengemudi->nama_staf : 'Tidak Ada Pengemudi';
             $vehicleNopol = $pk->kendaraan ? $pk->kendaraan->nopol_kendaraan : 'Tidak Ada Kendaraan';
