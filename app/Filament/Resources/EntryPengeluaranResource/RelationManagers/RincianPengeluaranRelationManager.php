@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\EntryPengeluaranResource\RelationManagers;
 
+use App\Filament\Resources\EntryPengeluaranResource;
 use App\Models\Perjalanan;
 use App\Models\Staf;
 use App\Models\UnitKerja;
@@ -15,6 +16,8 @@ use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
+use Filament\Tables\Actions\EditAction;
+use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Table;
@@ -22,7 +25,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
-class RincianPengeluaranRelationManagerRelationManager extends RelationManager
+class RincianPengeluaranRelationManager extends RelationManager
 {
     protected static string $relationship = 'rincianPengeluarans';
 
@@ -172,7 +175,17 @@ class RincianPengeluaranRelationManagerRelationManager extends RelationManager
             ->headerActions([
                 Tables\Actions\CreateAction::make(),
             ])
-
+            ->actions([
+                Tables\Actions\Action::make('tambah_biaya')
+                    ->label('Tambah Biaya')
+                    ->icon('heroicon-o-plus-circle')
+                    ->url(fn ($record): string => EntryPengeluaranResource::getUrl('rincian-biaya', [
+                        'record' => $this->getOwnerRecord()->id,
+                        'rincianPengeluaranId' => $record->id,
+                    ])),
+                EditAction::make(),
+                DeleteAction::make(),
+            ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
                     Tables\Actions\DeleteBulkAction::make(),

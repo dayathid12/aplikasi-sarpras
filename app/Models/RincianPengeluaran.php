@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+use Illuminate\Database\Eloquent\Relations\HasMany;
+
 class RincianPengeluaran extends Model
 {
     use HasFactory;
@@ -37,5 +39,10 @@ class RincianPengeluaran extends Model
     public function perjalananKendaraan(): BelongsTo
     {
         return $this->belongsTo(PerjalananKendaraan::class, 'perjalanan_id');
+    }
+
+    public function rincianBiayas(): HasMany
+    {
+        return $this->hasMany(RincianBiaya::class);
     }
 }

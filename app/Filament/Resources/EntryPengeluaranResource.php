@@ -97,7 +97,7 @@ class EntryPengeluaranResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\RincianPengeluaranRelationManagerRelationManager::class,
+            RelationManagers\RincianPengeluaranRelationManager::class,
         ];
     }
 
@@ -107,6 +107,7 @@ class EntryPengeluaranResource extends Resource
             'index' => Pages\ListEntryPengeluarans::route('/'),
             'create' => Pages\CreateEntryPengeluaran::route('/create'),
             'edit' => Pages\EditEntryPengeluaran::route('/{record}/edit'),
+            'rincian-biaya' => Pages\ManageRincianBiayas::route('/{record}/rincian-biaya/{rincianPengeluaranId}'),
         ];
     }
 }
