@@ -10,6 +10,8 @@ use Filament\Resources\Pages\Page;
 use Filament\Infolists\Infolist;
 use Filament\Infolists\Components\TextEntry;
 use Filament\Infolists\Components\Section;
+use Filament\Infolists\Components\Grid;
+use Filament\Support\Enums\FontWeight;
 use Filament\Infolists\Concerns\InteractsWithInfolists;
 use Filament\Forms\Concerns\InteractsWithForms;
 use Filament\Tables\Concerns\InteractsWithTable;
@@ -51,36 +53,68 @@ class ManageRincianBiayas extends Page implements \Filament\Forms\Contracts\HasF
             'perjalananKendaraan.kendaraan'
         ])->findOrFail($rincianPengeluaranId);
     }
-    
+
     public function infolist(Infolist $infolist): Infolist
     {
         $pk = $this->rincianPengeluaran->perjalananKendaraan;
-        $perjalanan = $pk->perjalanan;
+        $perjalanan = $pk?->perjalanan;
+
+        if (!$perjalanan) {
+            return $infolist->state([])->schema([
+                Section::make('Data Perjalanan Tidak Lengkap')
+                    ->description('Tidak dapat memuat detail perjalanan yang terkait.')
+                    ->schema([
+                        TextEntry::make('error')->default('Silakan periksa kembali data Rincian Pengeluaran.')
+                    ])
+            ]);
+        }
 
         return $infolist
             ->record($this->rincianPengeluaran)
             ->state([
                 'nomor_perjalanan' => $perjalanan->nomor_perjalanan,
                 'nama_pengemudi' => $pk->pengemudi->nama_staf ?? '-',
-                'waktu_berangkat' => $perjalanan->waktu_keberangkatan->format('d M Y'),
+                'waktu_berangkat' => $perjalanan->waktu_keberangkatan->format('d M Y, H:i'),
                 'alamat_tujuan' => $perjalanan->alamat_tujuan,
                 'unit_kerja' => $perjalanan->unitKerja->nama_unit_kerja ?? '-',
                 'nopol_kendaraan' => $pk->kendaraan->nopol_kendaraan ?? '-',
                 'kota_kabupaten' => $perjalanan->wilayah->nama_wilayah ?? '-',
             ])
             ->schema([
-                Section::make('Informasi Perjalanan')
-                    ->description('Detail dari perjalanan yang terkait dengan rincian biaya ini.')
-                    ->columns(3)
-                    ->schema([
-                        TextEntry::make('nomor_perjalanan')->label('Nomor Perjalanan')->icon('heroicon-o-document-text'),
-                        TextEntry::make('nama_pengemudi')->label('Nama Pengemudi')->icon('heroicon-o-user'),
-                        TextEntry::make('waktu_berangkat')->label('Waktu Berangkat')->icon('heroicon-o-calendar-days'),
-                        TextEntry::make('alamat_tujuan')->label('Alamat Tujuan')->columnSpan(2)->icon('heroicon-o-map-pin'),
-                        TextEntry::make('unit_kerja')->label('Unit Kerja/Fakultas/UKM')->icon('heroicon-o-building-office-2'),
-                        TextEntry::make('nopol_kendaraan')->label('Nomor Polisi Kendaraan')->icon('heroicon-o-truck'),
-                        TextEntry::make('kota_kabupaten')->label('Kota/Kabupaten Tujuan')->icon('heroicon-o-map'),
-                    ])
+                Grid::make(3)->schema([
+                    Section::make()->schema([
+                        TextEntry::make('nomor_perjalanan')
+                            ->label('Nomor Perjalanan')
+                            ->weight(FontWeight::Bold)
+                            ->copyable()
+                            ->icon('heroicon-o-document-text'),
+                        TextEntry::make('nama_pengemudi')
+                            ->label('Nama Pengemudi')
+                            ->weight(FontWeight::Bold)
+                            ->icon('heroicon-o-user'),
+                         TextEntry::make('nopol_kendaraan')
+                            ->label('Nomor Polisi Kendaraan')
+                            ->icon('heroicon-o-truck'),
+                    ])->columnSpan(1),
+
+                    Section::make()->schema([
+                        TextEntry::make('alamat_tujuan')
+                            ->label('Alamat Tujuan')
+                            ->icon('heroicon-o-map-pin'),
+                        TextEntry::make('kota_kabupaten')
+                            ->label('Kota/Kabupaten Tujuan')
+                            ->icon('heroicon-o-map'),
+                        TextEntry::make('waktu_berangkat')
+                            ->label('Waktu Berangkat')
+                            ->icon('heroicon-o-calendar-days'),
+                    ])->columnSpan(1),
+
+                    Section::make()->schema([
+                        TextEntry::make('unit_kerja')
+                            ->label('Unit Kerja/Fakultas/UKM')
+                            ->icon('heroicon-o-building-office-2'),
+                    ])->columnSpan(1),
+                ])
             ]);
     }
 
@@ -96,7 +130,7 @@ class ManageRincianBiayas extends Page implements \Filament\Forms\Contracts\HasF
                 ->form(fn(Form $form) => $this->getBiayaForm($form)),
         ];
     }
-    
+
     public function table(Table $table): Table
     {
         return $table
@@ -104,25 +138,20 @@ class ManageRincianBiayas extends Page implements \Filament\Forms\Contracts\HasF
             ->columns([
                 TextColumn::make('tipe')
                     ->badge()
+                    ->formatStateUsing(fn (string $state): string => ucfirst($state))
                     ->color(fn (string $state): string => match ($state) {
                         'bbm' => 'success',
                         'toll' => 'warning',
                         'parkir' => 'info',
                     }),
+                TextColumn::make('biaya')->money('IDR')->weight(FontWeight::Bold)->summarize(Sum::make()->label('Total Biaya')),
                 TextColumn::make('deskripsi')->searchable(),
                 TextColumn::make('jenis_bbm')->label('Jenis BBM')->searchable(),
                 TextColumn::make('volume')->suffix(' Ltr'),
-                TextColumn::make('biaya')->money('IDR')->summarize(Sum::make()->label('Total Biaya')),
             ])
             ->actions([
                 EditAction::make()->form(fn(Form $form) => $this->getBiayaForm($form)),
                 DeleteAction::make(),
-            ])
-            ->headerActions([
-                // Action is moved to getHeaderActions
-            ])
-            ->bulkActions([
-                //
             ])
             ->striped();
     }
@@ -135,26 +164,26 @@ class ManageRincianBiayas extends Page implements \Filament\Forms\Contracts\HasF
                     ->icon('heroicon-o-beaker')
                     ->schema([
                         TextInput::make('tipe')->default('bbm')->hidden(),
+                        TextInput::make('biaya')->label('Jumlah BBM')->numeric()->prefix('Rp'),
+                        Select::make('jenis_bbm')->options(['Dexlite' => 'Dexlite', 'Pertamax' => 'Pertamax', 'Lainnya' => 'Lainnya']),
+                        TextInput::make('volume')->label('Volume (Liter)')->numeric(),
                         TextInput::make('deskripsi')->label('Kode ATM/Keterangan'),
-                        Select::make('jenis_bbm')->options(['Dexlite' => 'Dexlite', 'Pertamax' => 'Pertamax', 'Lainnya' => 'Lainnya'])->required(),
-                        TextInput::make('volume')->label('Volume (Liter)')->numeric()->required(),
-                        TextInput::make('biaya')->label('Total Biaya')->numeric()->prefix('Rp')->required(),
                         FileUpload::make('bukti_path')->label('Upload Struk BBM')->directory('struk-bbm'),
                     ]),
                 Tab::make('Toll')
                     ->icon('heroicon-o-ticket')
                     ->schema([
                         TextInput::make('tipe')->default('toll')->hidden(),
-                        TextInput::make('deskripsi')->label('Kode Kartu Toll/Gerbang')->required(),
-                        TextInput::make('biaya')->label('Biaya Toll')->numeric()->prefix('Rp')->required(),
+                        TextInput::make('biaya')->label('Jumlah Toll')->numeric()->prefix('Rp'),
+                        TextInput::make('deskripsi')->label('Kode Kartu Toll/Gerbang'),
                         FileUpload::make('bukti_path')->label('Upload Struk Toll')->directory('struk-toll'),
                     ]),
                 Tab::make('Parkir')
                     ->icon('heroicon-o-currency-dollar')
                     ->schema([
                         TextInput::make('tipe')->default('parkir')->hidden(),
-                        TextInput::make('deskripsi')->label('Lokasi Parkir')->required(),
-                        TextInput::make('biaya')->label('Biaya Parkir')->numeric()->prefix('Rp')->required(),
+                        TextInput::make('biaya')->label('Jumlah Parkir')->numeric()->prefix('Rp'),
+                        TextInput::make('deskripsi')->label('Lokasi Parkir'),
                         FileUpload::make('bukti_path')->label('Upload Bukti Parkir')->directory('bukti-parkir'),
                     ]),
             ])->columnSpanFull(),

@@ -8,4 +8,14 @@ use Illuminate\Database\Eloquent\Model;
 class RincianBiaya extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'rincian_pengeluaran_id',
+        'tipe',
+        'deskripsi',
+        'volume',
+        'jenis_bbm',
+        'biaya',
+        'bukti_path',
+    ];
 }
