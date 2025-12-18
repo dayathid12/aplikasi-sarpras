@@ -1,33 +1,18 @@
-# TODO: Tambahkan Pengurutan Manual untuk Kolom Daftar Kendaraan
+# Enum Implementation for Kategori Biaya
 
-## Langkah-langkah yang Harus Diselesaikan:
+## Completed Tasks
+- [x] Created `app/Enums/KategoriBiaya.php` enum with BBM, TOLL, PARKIR cases
+- [x] Updated `app/Models/RincianBiaya.php` to cast 'tipe' to the enum and added tipeLabel accessor
+- [x] Updated `app/Filament/Resources/EntryPengeluaranResource/Pages/ManageRincianBiayas.php` to use enum options and values
+- [x] Added use statement for the enum in the Filament page
 
-1. **Tambahkan kolom `sort_order` ke tabel `kendaraans`**:
-   - Buat migrasi untuk menambahkan kolom `sort_order` ke tabel `kendaraans`, mirip dengan yang ada di tabel `stafs`.
-   - [x] Migrasi dibuat dan dijalankan.
+## Verification
+- [ ] Test the form to ensure enum options appear correctly
+- [ ] Test creating new RincianBiaya records
+- [ ] Verify existing data still works with the enum casting
+- [ ] Check if view file needs any updates (likely not, as it filters by string values)
 
-2. **Perbarui model `Kendaraan`**:
-   - Tambahkan `sort_order` ke dalam array `$fillable` di model `Kendaraan`.
-   - [x] `sort_order` ditambahkan ke `$fillable`.
-
-3. **Modifikasi `BookingKendaraanCalendar.php`**:
-   - Tambahkan properti `manualSortOrder` untuk menyimpan urutan manual.
-   - Tambahkan metode `updateKendaraanSort` untuk menangani pembaruan urutan.
-   - Ubah query kendaraan untuk diurutkan berdasarkan `sort_order`.
-   - [x] Properti `manualSortOrder` ditambahkan.
-   - [x] Metode `updateKendaraanSort` ditambahkan.
-   - [x] Query kendaraan diubah untuk diurutkan berdasarkan `sort_order`.
-
-4. **Perbarui tampilan `booking-kendaraan-calendar.blade.php`**:
-   - Tambahkan JavaScript sortable untuk baris kendaraan, mirip dengan yang ada di jadwal-pengemudi-calendar.blade.php.
-   - Tambahkan handle drag pada sel kendaraan.
-   - [x] JavaScript sortable ditambahkan.
-   - [x] Handle drag ditambahkan.
-
-5. **Jalankan migrasi**:
-   - Jalankan migrasi untuk menerapkan perubahan database.
-   - [x] Migrasi dijalankan.
-
-6. **Uji fungsionalitas**:
-   - Pastikan pengurutan manual berfungsi dengan baik di halaman booking-kendaraans.
-   - [ ] Uji fungsionalitas (belum dilakukan).
+## Notes
+- The database enum remains unchanged, so existing data is compatible
+- The enum provides better type safety and maintainability
+- View file uses string values for filtering, which should continue to work

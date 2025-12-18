@@ -14,7 +14,6 @@ use Filament\Infolists\Components\Grid;
 use Filament\Support\Enums\FontWeight;
 use Filament\Infolists\Concerns\InteractsWithInfolists;
 use Filament\Forms\Concerns\InteractsWithForms;
-use Filament\Tables\Concerns\InteractsWithTable;
 use Filament\Actions\Action;
 use Filament\Actions\CreateAction;
 use Filament\Forms\Components\Tabs;
@@ -24,19 +23,13 @@ use Filament\Forms\Components\Select;
 use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Hidden;
 use Filament\Forms\Form;
-use Filament\Tables\Table;
-use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Columns\Summarizers\Sum;
-use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\DeleteAction;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Log;
 
-class ManageRincianBiayas extends Page implements \Filament\Forms\Contracts\HasForms, \Filament\Tables\Contracts\HasTable, \Filament\Infolists\Contracts\HasInfolists
+class ManageRincianBiayas extends Page implements \Filament\Forms\Contracts\HasForms, \Filament\Infolists\Contracts\HasInfolists
 {
     use InteractsWithInfolists;
     use InteractsWithForms;
-    use InteractsWithTable;
 
     protected static string $resource = EntryPengeluaranResource::class;
 
@@ -133,40 +126,7 @@ class ManageRincianBiayas extends Page implements \Filament\Forms\Contracts\HasF
         ];
     }
 
-    public function table(Table $table): Table
-    {
-        return $table
-            ->query(RincianBiaya::where('rincian_pengeluaran_id', $this->rincianPengeluaran->id))
-            ->columns([
-                TextColumn::make('tipe')
-                    ->label('Kategori')
-                    ->badge()
-                    ->formatStateUsing(function (string $state): string {
-                        return match ($state) {
-                            'bbm' => 'BBM',
-                            'toll' => 'Toll',
-                            'parkir' => 'Parkir',
-                            default => ucfirst($state),
-                        };
-                    })
-                    ->color(fn (string $state): string => match ($state) {
-                        'bbm' => 'success',
-                        'toll' => 'warning',
-                        'parkir' => 'info',
-                        default => 'gray',
-                    }),
-                TextColumn::make('biaya')->money('IDR')->weight(FontWeight::Bold)->summarize(Sum::make()->label('Total Biaya')),
-                TextColumn::make('deskripsi')->searchable(),
-                TextColumn::make('jenis_bbm')->label('Jenis BBM')->searchable(),
-                TextColumn::make('volume')->suffix(' Ltr'),
-            ])
-            ->actions([
-                EditAction::make()
-                    ->form(fn(Form $form) => $this->getBiayaForm($form)),
-                DeleteAction::make(),
-            ])
-            ->striped();
-    }
+
 
     private function getBiayaForm(Form $form): Form
     {
