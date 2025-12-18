@@ -37,6 +37,9 @@ class ManageRincianBiayas extends Page implements \Filament\Forms\Contracts\HasF
 
     public EntryPengeluaran $record;
     public RincianPengeluaran $rincianPengeluaran;
+    public $bbm;
+    public $toll;
+    public $parkir;
 
     public function mount(EntryPengeluaran $record, $rincianPengeluaranId): void
     {
@@ -47,6 +50,16 @@ class ManageRincianBiayas extends Page implements \Filament\Forms\Contracts\HasF
             'perjalananKendaraan.pengemudi',
             'perjalananKendaraan.kendaraan'
         ])->findOrFail($rincianPengeluaranId);
+
+        $this->bbm = RincianBiaya::where('rincian_pengeluaran_id', $this->rincianPengeluaran->id)
+            ->where('tipe', 'bbm')
+            ->get();
+        $this->toll = RincianBiaya::where('rincian_pengeluaran_id', $this->rincianPengeluaran->id)
+            ->where('tipe', 'toll')
+            ->get();
+        $this->parkir = RincianBiaya::where('rincian_pengeluaran_id', $this->rincianPengeluaran->id)
+            ->where('tipe', 'parkir')
+            ->get();
     }
 
     public function infolist(Infolist $infolist): Infolist
@@ -176,5 +189,10 @@ class ManageRincianBiayas extends Page implements \Filament\Forms\Contracts\HasF
                     FileUpload::make('bukti_path')->label('Upload Bukti Parkir')->directory('bukti-parkir'),
                 ]),
         ]);
+    }
+
+    public function rp($value): string
+    {
+        return 'Rp' . number_format($value, 0, ',', '.');
     }
 }

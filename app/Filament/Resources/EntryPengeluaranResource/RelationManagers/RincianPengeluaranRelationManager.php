@@ -168,6 +168,39 @@ class RincianPengeluaranRelationManager extends RelationManager
                     ->label('Nomor Polisi Kendaraan'),
                 Tables\Columns\TextColumn::make('perjalananKendaraan.perjalanan.wilayah.nama_wilayah')
                     ->label('Kota Kabupaten'),
+                Tables\Columns\TextColumn::make('total_bbm')
+                    ->label('Total BBM')
+                    ->getStateUsing(function (\App\Models\RincianPengeluaran $record): string {
+                        \Illuminate\Support\Facades\Log::debug('RincianPengeluaran ID: ' . $record->id);
+                        $rincianBiayas = $record->rincianBiayas;
+                        \Illuminate\Support\Facades\Log::debug('RincianBiayas for ' . $record->id . ': ' . $rincianBiayas->count() . ' items');
+                        $filteredBBM = $rincianBiayas->where('tipe', 'bbm');
+                        \Illuminate\Support\Facades\Log::debug('Filtered BBM for ' . $record->id . ': ' . $filteredBBM->count() . ' items');
+                        $totalBBM = $filteredBBM->sum('biaya');
+                        \Illuminate\Support\Facades\Log::debug('Calculated Total BBM for ' . $record->id . ': ' . $totalBBM);
+                        return 'Rp ' . number_format($totalBBM, 0, ',', '.');
+                    }),
+                Tables\Columns\TextColumn::make('total_toll')
+                    ->label('Total Toll')
+                    ->getStateUsing(function (\App\Models\RincianPengeluaran $record): string {
+                        \Illuminate\Support\Facades\Log::debug('RincianPengeluaran ID: ' . $record->id);
+                        $rincianBiayas = $record->rincianBiayas;
+                        \Illuminate\Support\Facades\Log::debug('RincianBiayas for ' . $record->id . ': ' . $rincianBiayas->count() . ' items');
+                        $filteredToll = $rincianBiayas->where('tipe', 'toll');
+                        \Illuminate\Support\Facades\Log::debug('Filtered Toll for ' . $record->id . ': ' . $filteredToll->count() . ' items');
+                        $totalToll = $filteredToll->sum('biaya');
+                        \Illuminate\Support\Facades\Log::debug('Calculated Total Toll for ' . $record->id . ': ' . $totalToll);
+                        return 'Rp ' . number_format($totalToll, 0, ',', '.');
+                    }),
+                Tables\Columns\TextColumn::make('total_parkir')
+                    ->label('Total Parkir')
+                    ->getStateUsing(function (\App\Models\RincianPengeluaran $record): string {
+                        $parkirFromRincianPengeluaran = $record->biaya_parkir ?? 0;
+                        $parkirFromRincianBiayas = $record->rincianBiayas->where('tipe', 'parkir')->sum('biaya');
+                        $totalParkir = $parkirFromRincianPengeluaran + $parkirFromRincianBiayas;
+                        return 'Rp ' . number_format($totalParkir, 0, ',', '.');
+                    }),
+
             ])
             ->filters([
                 //
@@ -178,6 +211,7 @@ class RincianPengeluaranRelationManager extends RelationManager
                     ->icon('heroicon-o-arrow-left')
                     ->color('gray')
                     ->url('/app/entry-pengeluarans'),
+                ExportAction::make('export'),
                 Tables\Actions\CreateAction::make(),
             ])
             ->actions([
@@ -195,6 +229,12 @@ class RincianPengeluaranRelationManager extends RelationManager
                     Tables\Actions\DeleteBulkAction::make(),
                 ]),
             ]);
+    }
+
+    protected function getTableQuery(): Builder
+    {
+        return $this->getRelationship()->getQuery()
+            ->with(['rincianBiayas']);
     }
 
     protected function getPerjalananOptions(?string $search = null): array

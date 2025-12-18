@@ -71,6 +71,28 @@ class EntryPengeluaranResource extends Resource
                     ->label('Nama Berkas')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('total_bbm')
+                    ->label('Total Pengeluaran BBM')
+                    ->getStateUsing(function (EntryPengeluaran $record): string {
+                        $totalBBM = $record->rincianPengeluarans->sum(function ($rincian) {
+                            return $rincian->rincianBiayas->where('tipe', 'BBM')->sum('biaya');
+                        });
+                        return 'Rp ' . number_format($totalBBM, 0, ',', '.');
+                    }),
+                TextColumn::make('total_toll')
+                    ->label('Total Pengeluaran Toll')
+                    ->getStateUsing(function (EntryPengeluaran $record): string {
+                        $totalToll = $record->rincianPengeluarans->sum(function ($rincian) {
+                            return $rincian->rincianBiayas->where('tipe', 'Toll')->sum('biaya');
+                        });
+                        return 'Rp ' . number_format($totalToll, 0, ',', '.');
+                    }),
+                TextColumn::make('total_parkir')
+                    ->label('Total Pengeluaran Parkir')
+                    ->getStateUsing(function (EntryPengeluaran $record): string {
+                        $totalParkir = $record->rincianPengeluarans->sum('biaya_parkir');
+                        return 'Rp ' . number_format($totalParkir, 0, ',', '.');
+                    }),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -109,4 +131,11 @@ class EntryPengeluaranResource extends Resource
             'rincian-biaya' => Pages\ManageRincianBiayas::route('/{record}/rincian-biaya/{rincianPengeluaranId}'),
         ];
     }
+
+    public static function getEloquentQuery(): Builder
+    {
+        return parent::getEloquentQuery()
+            ->with(['rincianPengeluarans.rincianBiayas']);
+    }
+
 }
