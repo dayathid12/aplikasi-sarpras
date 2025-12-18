@@ -76,8 +76,12 @@ class ManageRincianBiayas extends Page implements \Filament\Forms\Contracts\HasF
                 'kota_kabupaten' => $perjalanan->wilayah->nama_wilayah ?? '-',
             ])
             ->schema([
-                Grid::make(3)->schema([
-                    \Filament\Infolists\Components\Section::make()->schema([
+                \Filament\Infolists\Components\Section::make('Informasi Perjalanan')
+                    ->collapsible()
+                    ->collapsed()
+                    ->extraAttributes(['class' => 'text-gray-600 dark:text-gray-300'])
+                    ->columns(3) // Set columns for the main section
+                    ->schema([
                         TextEntry::make('nomor_perjalanan')
                             ->label('Nomor Perjalanan')
                             ->weight(FontWeight::Bold)
@@ -87,12 +91,9 @@ class ManageRincianBiayas extends Page implements \Filament\Forms\Contracts\HasF
                             ->label('Nama Pengemudi')
                             ->weight(FontWeight::Bold)
                             ->icon('heroicon-o-user'),
-                         TextEntry::make('nopol_kendaraan')
+                        TextEntry::make('nopol_kendaraan')
                             ->label('Nomor Polisi Kendaraan')
                             ->icon('heroicon-o-truck'),
-                    ])->columnSpan(1),
-
-                    \Filament\Infolists\Components\Section::make()->schema([
                         TextEntry::make('alamat_tujuan')
                             ->label('Alamat Tujuan')
                             ->icon('heroicon-o-map-pin'),
@@ -102,14 +103,10 @@ class ManageRincianBiayas extends Page implements \Filament\Forms\Contracts\HasF
                         TextEntry::make('waktu_berangkat')
                             ->label('Waktu Berangkat')
                             ->icon('heroicon-o-calendar-days'),
-                    ])->columnSpan(1),
-
-                    \Filament\Infolists\Components\Section::make()->schema([
                         TextEntry::make('unit_kerja')
                             ->label('Unit Kerja/Fakultas/UKM')
                             ->icon('heroicon-o-building-office-2'),
-                    ])->columnSpan(1),
-                ])
+                    ])
             ]);
     }
 

@@ -65,11 +65,11 @@
                     <p class="text-xl font-bold text-primary-800 dark:text-primary-200">Rp{{ number_format($tollRincianBiayas->sum('biaya'), 0, ',', '.') }}</p>
                 </div>
             @endif
-        </div>
+        </details>
 
         {{-- Parkir Card View --}}
-        <div class="filament-tables-card p-4 rounded-xl shadow-sm bg-white dark:bg-gray-800">
-            <h3 class="text-lg font-bold mb-4 dark:text-white">Rincian Biaya Parkir</h3>
+        <details class="filament-tables-card p-4 rounded-xl shadow-sm bg-white dark:bg-gray-800">
+            <summary><h3 class="text-lg font-bold mb-4 text-gray-600 dark:text-gray-300 cursor-pointer">Rincian Biaya Parkir</h3></summary>
 
             @if ($parkirRincianBiayas->isEmpty())
                 <p class="text-gray-600 dark:text-gray-400">Tidak ada rincian biaya Parkir.</p>
@@ -91,6 +91,6 @@
                     <p class="text-xl font-bold text-primary-800 dark:text-primary-200">Rp{{ number_format($parkirRincianBiayas->sum('biaya'), 0, ',', '.') }}</p>
                 </div>
             @endif
-        </div>
+        </details>
     </div>
 </x-filament-panels::page>
