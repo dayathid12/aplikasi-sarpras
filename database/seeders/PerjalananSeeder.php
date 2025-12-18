@@ -17,9 +17,8 @@ class PerjalananSeeder extends Seeder
         $data = [
             [
                 'perjalanan_data' => [
-                    'nomor_perjalanan' => 1,
-                    'waktu_keberangkatan' => Carbon::create(2025, 10, 1, 8, 0, 0),
-                    'waktu_kepulangan' => Carbon::create(2025, 10, 3, 17, 0, 0),
+                    'waktu_keberangkatan' => Carbon::create(2025, 12, 1, 8, 0, 0),
+                    'waktu_kepulangan' => Carbon::create(2025, 12, 3, 17, 0, 0),
                     'status_perjalanan' => 'Terjadwal',
                     'alamat_tujuan' => 'Jakarta',
                     'lokasi_keberangkatan' => 'Bandung',
@@ -27,7 +26,7 @@ class PerjalananSeeder extends Seeder
                     'jenis_kegiatan' => 'Rapat',
                     'nama_kegiatan' => 'Rapat Koordinasi',
                     'jenis_operasional' => 'Dinas',
-                    'no_surat_tugas' => 'ST-0001/2025',
+                    'no_surat_tugas' => 'ST-1001/2025',
                     'nama_pengguna' => 'John Doe',
                     'kontak_pengguna' => '08123456789',
                     'tujuan_wilayah_id' => 1,
@@ -36,22 +35,21 @@ class PerjalananSeeder extends Seeder
                 'kendaraan_data' => [
                     'pengemudi_id' => 1,
                     'asisten_id' => 2,
-                    'kendaraan_nopol' => 'D 1 DUP',
+                    'kendaraan_nopol' => 'D 1841 D',
                 ]
             ],
             [
                 'perjalanan_data' => [
-                    'nomor_perjalanan' => 2,
-                    'waktu_keberangkatan' => Carbon::create(2025, 10, 15, 9, 0, 0),
-                    'waktu_kepulangan' => Carbon::create(2025, 10, 17, 16, 0, 0),
-                    'status_perjalanan' => 'Menunggu Persetujuan',
+                    'waktu_keberangkatan' => Carbon::create(2025, 12, 15, 9, 0, 0),
+                    'waktu_kepulangan' => Carbon::create(2025, 12, 17, 16, 0, 0),
+                    'status_perjalanan' => 'Terjadwal',
                     'alamat_tujuan' => 'Surabaya',
                     'lokasi_keberangkatan' => 'Bandung',
                     'jumlah_rombongan' => 3,
                     'jenis_kegiatan' => 'Seminar',
                     'nama_kegiatan' => 'Seminar Nasional',
                     'jenis_operasional' => 'Dinas',
-                    'no_surat_tugas' => 'ST-0002/2025',
+                    'no_surat_tugas' => 'ST-2002/2025',
                     'nama_pengguna' => 'Jane Smith',
                     'kontak_pengguna' => '08198765432',
                     'tujuan_wilayah_id' => 2,
@@ -65,17 +63,16 @@ class PerjalananSeeder extends Seeder
             ],
             [
                 'perjalanan_data' => [
-                    'nomor_perjalanan' => 3,
-                    'waktu_keberangkatan' => Carbon::create(2025, 10, 29, 7, 0, 0),
+                    'waktu_keberangkatan' => Carbon::create(2025, 12, 29, 7, 0, 0),
                     'waktu_kepulangan' => null,
-                    'status_perjalanan' => 'Ditolak',
+                    'status_perjalanan' => 'Terjadwal',
                     'alamat_tujuan' => 'Yogyakarta',
                     'lokasi_keberangkatan' => 'Bandung',
                     'jumlah_rombongan' => 2,
                     'jenis_kegiatan' => 'Kunjungan',
                     'nama_kegiatan' => 'Kunjungan Kerja',
                     'jenis_operasional' => 'Dinas',
-                    'no_surat_tugas' => 'ST-0003/2025',
+                    'no_surat_tugas' => 'ST-3003/2025',
                     'nama_pengguna' => 'Bob Johnson',
                     'kontak_pengguna' => '08134567890',
                     'tujuan_wilayah_id' => 3,
@@ -84,7 +81,7 @@ class PerjalananSeeder extends Seeder
                 'kendaraan_data' => [
                     'pengemudi_id' => 5,
                     'asisten_id' => 6,
-                    'kendaraan_nopol' => 'D 1 DUP',
+                    'kendaraan_nopol' => 'D 1814 A',
                 ]
             ],
         ];
@@ -95,7 +92,7 @@ class PerjalananSeeder extends Seeder
 
             // Kemudian buat detail kendaraan terkait
             PerjalananKendaraan::create([
-                'perjalanan_id' => $perjalanan->nomor_perjalanan,
+                'perjalanan_id' => $perjalanan->id,
                 'kendaraan_nopol' => $item['kendaraan_data']['kendaraan_nopol'],
                 'pengemudi_id' => $item['kendaraan_data']['pengemudi_id'],
                 'asisten_id' => $item['kendaraan_data']['asisten_id'],

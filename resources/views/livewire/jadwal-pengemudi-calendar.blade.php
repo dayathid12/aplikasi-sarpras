@@ -31,6 +31,7 @@
         <div class="w-full lg:w-80 relative group">
             <input
                 type="search"
+                wire:model.live="search"
                 placeholder="Cari nama atau NIP..."
                 class="block w-full pl-10 pr-4 py-3 text-sm font-medium text-slate-700 dark:text-white bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl placeholder-slate-400 focus:ring-4 focus:ring-fuchsia-500/20 focus:border-fuchsia-500 transition-all duration-200 ease-in-out"
             >

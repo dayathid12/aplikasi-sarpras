@@ -104,7 +104,7 @@ class Perjalanan extends Model
      */
     public function kendaraan()
     {
-        return $this->hasManyThrough(Kendaraan::class, PerjalananKendaraan::class, 'perjalanan_id', 'nopol_kendaraan', 'nomor_perjalanan', 'kendaraan_nopol');
+        return $this->hasManyThrough(Kendaraan::class, PerjalananKendaraan::class, 'perjalanan_id', 'nopol_kendaraan', 'id', 'kendaraan_nopol');
     }
 
     /**
@@ -114,7 +114,7 @@ class Perjalanan extends Model
      */
     public function pengemudi()
     {
-        return $this->hasManyThrough(Staf::class, PerjalananKendaraan::class, 'perjalanan_id', 'staf_id', 'nomor_perjalanan', 'pengemudi_id');
+        return $this->hasManyThrough(Staf::class, PerjalananKendaraan::class, 'perjalanan_id', 'staf_id', 'id', 'pengemudi_id');
     }
 
     /**
@@ -124,7 +124,7 @@ class Perjalanan extends Model
      */
     public function asisten()
     {
-        return $this->hasManyThrough(Staf::class, PerjalananKendaraan::class, 'perjalanan_id', 'staf_id', 'nomor_perjalanan', 'asisten_id');
+        return $this->hasManyThrough(Staf::class, PerjalananKendaraan::class, 'perjalanan_id', 'staf_id', 'id', 'asisten_id');
     }
 
     public function entryPengeluaran(): BelongsTo
