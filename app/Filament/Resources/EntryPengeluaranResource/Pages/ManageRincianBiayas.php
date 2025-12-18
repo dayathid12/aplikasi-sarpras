@@ -113,6 +113,11 @@ class ManageRincianBiayas extends Page implements \Filament\Forms\Contracts\HasF
     protected function getHeaderActions(): array
     {
         return [
+            \Filament\Actions\Action::make('back')
+                ->label('Kembali')
+                ->icon('heroicon-o-arrow-left')
+                ->color('gray')
+                ->url(fn (): string => static::getResource()::getUrl('edit', ['record' => $this->record])),
             Action::make('Tambah Biaya')
                 ->label('Tambah Rincian Biaya')
                 ->icon('heroicon-o-plus')

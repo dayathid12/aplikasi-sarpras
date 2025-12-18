@@ -173,6 +173,11 @@ class RincianPengeluaranRelationManager extends RelationManager
                 //
             ])
             ->headerActions([
+                Tables\Actions\Action::make('back')
+                    ->label('Kembali')
+                    ->icon('heroicon-o-arrow-left')
+                    ->color('gray')
+                    ->url('/app/entry-pengeluarans'),
                 Tables\Actions\CreateAction::make(),
             ])
             ->actions([
