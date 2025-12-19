@@ -23,9 +23,13 @@ class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, W
     public function __construct(EntryPengeluaran $entryPengeluaran)
     {
         $this->entryPengeluaran = $entryPengeluaran;
-        // Assuming nomor berkas comes from the first related EntryPengeluaran's Perjalanan
-        $this->nomorBerkas = $entryPengeluaran->rincianPengeluarans->first()
-                                ->perjalananKendaraan->perjalanan->nomor_perjalanan ?? 'N/A';
+        // Attempt to get nomor berkas from the first related RincianPengeluaran's Perjalanan
+        // Handle cases where rincianPengeluarans or its relations might be empty
+        $this->nomorBerkas = $entryPengeluaran->rincianPengeluarans
+                                ->first()
+                                ->perjalananKendaraan
+                                ->perjalanan
+                                ->nomor_perjalanan ?? 'N/A';
     }
 
     public function startCell(): string
@@ -69,20 +73,26 @@ class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, W
                 $totalBBM = 0;
                 $totalTol = 0;
                 $totalParkir = 0;
-                $jenisBBM = '';
-                $volumeBBM = '';
+                $jenisBBM = ''; // Will hold the first encountered jenis_bbm
+                $volumeBBM = ''; // Will hold the first encountered volume
                 $kodeKartuTol = '-'; // Default
                 $kodeAT = 'KK'; // Default, as per user's hardcoded example
 
                 foreach ($rincianPengeluaran->rincianBiayas as $biaya) {
                     if ($biaya->tipe === 'bbm') {
                         $totalBBM += $biaya->biaya;
-                        $jenisBBM = $biaya->jenis_bbm;
-                        $volumeBBM = $biaya->volume;
+                        // Only set if not already set, or if current is empty and new is not
+                        if (empty($jenisBBM) && !empty($biaya->jenis_bbm)) {
+                            $jenisBBM = $biaya->jenis_bbm;
+                        }
+                        if (empty($volumeBBM) && !empty($biaya->volume)) {
+                            $volumeBBM = $biaya->volume;
+                        }
                     } elseif ($biaya->tipe === 'tol') {
                         $totalTol += $biaya->biaya;
-                        // Assuming 'm' from user's example in map means some type of card
-                        $kodeKartuTol = 'm'; 
+                        // Try to get dynamic kode_kartu_tol, otherwise default to 'm'
+                        // This assumes a 'kode_kartu_tol' field exists on RincianBiaya model for tol entries
+                        $kodeKartuTol = $biaya->kode_kartu_tol ?? 'm'; 
                     } elseif ($biaya->tipe === 'parkir_lainnya') {
                         $totalParkir += $biaya->biaya;
                     }
@@ -105,11 +115,14 @@ class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, W
     {
         static $no = 1;
 
-        $perjalanan = $row->perjalananKendaraan->perjalanan;
-        $pengemudi = $row->perjalananKendaraan->pengemudi;
-        $kendaraan = $row->perjalananKendaraan->kendaraan;
-        $unitKerja = $perjalanan->unitKerja;
-        $wilayah = $perjalanan->wilayah;
+        // Defensive checks for relationships
+        $perjalananKendaraan = $row->perjalananKendaraan;
+        $perjalanan = $perjalananKendaraan->perjalanan ?? null;
+        $pengemudi = $perjalananKendaraan->pengemudi ?? null;
+        $kendaraan = $perjalananKendaraan->kendaraan ?? null;
+        $unitKerja = $perjalanan->unitKerja ?? null;
+        $wilayah = $perjalanan->wilayah ?? null;
+
 
         return [
             $no++,
@@ -142,7 +155,7 @@ class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, W
                 $sheet->mergeCells('A1:O1');
                 $sheet->setCellValue('A1', 'Tanda Terima SPJ BBM dan Tol Th. 2025');
                 $sheet->getStyle('A1')->applyFromArray([
-                    'font' => ['bold' => true, 'size' => 12, 'underline' => true],
+                    'font' => ['bold' => true, 'size' => 18, 'underline' => true],
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_CENTER]
                 ]);
 
@@ -235,3 +248,4 @@ class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, W
         ];
     }
 }
+
