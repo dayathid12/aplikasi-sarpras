@@ -18,9 +18,11 @@ use Carbon\Carbon;
 
 class EntryPengeluaranResource extends Resource
 {
-    protected static ?string $model = EntryPengeluaran::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
+    protected static ?string $navigationLabel = 'Entry Pengeluaran';
+    protected static ?string $navigationGroup = 'Poll Kendaraan';
+    protected static ?int $navigationSort = 0;
+
 
     public static function form(Form $form): Form
     {
@@ -73,26 +75,19 @@ class EntryPengeluaranResource extends Resource
                     ->sortable(),
                 TextColumn::make('total_bbm')
                     ->label('Total Pengeluaran BBM')
-                    ->getStateUsing(function (EntryPengeluaran $record): string {
-                        $totalBBM = $record->rincianPengeluarans->sum(function ($rincian) {
-                            return $rincian->rincianBiayas->where('tipe', 'BBM')->sum('biaya');
-                        });
-                        return 'Rp ' . number_format($totalBBM, 0, ',', '.');
-                    }),
+                    ->money('IDR')
+                    ->sortable(),
                 TextColumn::make('total_toll')
                     ->label('Total Pengeluaran Toll')
-                    ->getStateUsing(function (EntryPengeluaran $record): string {
-                        $totalToll = $record->rincianPengeluarans->sum(function ($rincian) {
-                            return $rincian->rincianBiayas->where('tipe', 'Toll')->sum('biaya');
-                        });
-                        return 'Rp ' . number_format($totalToll, 0, ',', '.');
-                    }),
+                    ->money('IDR')
+                    ->sortable(),
                 TextColumn::make('total_parkir')
                     ->label('Total Pengeluaran Parkir')
-                    ->getStateUsing(function (EntryPengeluaran $record): string {
-                        $totalParkir = $record->rincianPengeluarans->sum('biaya_parkir');
-                        return 'Rp ' . number_format($totalParkir, 0, ',', '.');
-                    }),
+                    ->money('IDR')
+                    ->getStateUsing(function (EntryPengeluaran $record): float {
+                        return ($record->total_parkir_biaya ?? 0) + ($record->total_parkir_pengeluaran ?? 0);
+                    })
+                    ->sortable(),
                 TextColumn::make('created_at')
                     ->dateTime()
                     ->sortable()
@@ -135,7 +130,16 @@ class EntryPengeluaranResource extends Resource
     public static function getEloquentQuery(): Builder
     {
         return parent::getEloquentQuery()
-            ->with(['rincianPengeluarans.rincianBiayas']);
+            ->withSum(['rincianBiayas as total_bbm' => function ($query) {
+                $query->where('tipe', 'BBM');
+            }], 'biaya')
+            ->withSum(['rincianBiayas as total_toll' => function ($query) {
+                $query->where('tipe', 'Toll');
+            }], 'biaya')
+            ->withSum(['rincianBiayas as total_parkir_biaya' => function ($query) {
+                $query->where('tipe', 'Parkir');
+            }], 'biaya')
+            ->withSum('rincianPengeluarans as total_parkir_pengeluaran', 'biaya_parkir');
     }
 
 }

@@ -20,7 +20,7 @@ class JadwalPengemudiResource extends Resource
     protected static ?string $navigationGroup = 'Poll Kendaraan';
     protected static ?int $navigationSort = 0;
 
-    protected static ?string $navigationLabel = 'Jadwal Pengemudi';
+  
 
     public static function shouldRegisterNavigation(): bool
     {

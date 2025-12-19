@@ -1,18 +1,10 @@
-# Enum Implementation for Kategori Biaya
+# TODO: Remove Trash Icon from Entry Pengeluaran Edit Page Table
 
 ## Completed Tasks
-- [x] Created `app/Enums/KategoriBiaya.php` enum with BBM, TOLL, PARKIR cases
-- [x] Updated `app/Models/RincianBiaya.php` to cast 'tipe' to the enum and added tipeLabel accessor
-- [x] Updated `app/Filament/Resources/EntryPengeluaranResource/Pages/ManageRincianBiayas.php` to use enum options and values
-- [x] Added use statement for the enum in the Filament page
+- [x] Analyzed the codebase to locate the trash icon (DeleteAction) in RincianPengeluaranRelationManager.php
+- [x] Removed DeleteAction::make() from the table actions array
+- [x] Removed the unused import for DeleteAction
 
-## Verification
-- [ ] Test the form to ensure enum options appear correctly
-- [ ] Test creating new RincianBiaya records
-- [ ] Verify existing data still works with the enum casting
-- [ ] Check if view file needs any updates (likely not, as it filters by string values)
-
-## Notes
-- The database enum remains unchanged, so existing data is compatible
-- The enum provides better type safety and maintainability
-- View file uses string values for filtering, which should continue to work
+## Remaining Tasks
+- [ ] Test the edit page at http://127.0.0.1:8000/app/entry-pengeluarans/1/edit to verify the trash icon is removed
+- [ ] Ensure the table still functions correctly without the delete action

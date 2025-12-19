@@ -17,17 +17,19 @@ use Filament\Forms\Form;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Tables;
 use Filament\Tables\Actions\EditAction;
-use Filament\Tables\Actions\DeleteAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Columns\ImageColumn;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 class RincianPengeluaranRelationManager extends RelationManager
 {
     protected static string $relationship = 'rincianPengeluarans';
+
+    // protected static string $view = 'filament.resources.entry-pengeluaran-resource.relation-managers.rincian-pengeluaran-relation-manager.index';
 
     public function form(Form $form): Form
     {
@@ -170,36 +172,16 @@ class RincianPengeluaranRelationManager extends RelationManager
                     ->label('Kota Kabupaten'),
                 Tables\Columns\TextColumn::make('total_bbm')
                     ->label('Total BBM')
-                    ->getStateUsing(function (\App\Models\RincianPengeluaran $record): string {
-                        \Illuminate\Support\Facades\Log::debug('RincianPengeluaran ID: ' . $record->id);
-                        $rincianBiayas = $record->rincianBiayas;
-                        \Illuminate\Support\Facades\Log::debug('RincianBiayas for ' . $record->id . ': ' . $rincianBiayas->count() . ' items');
-                        $filteredBBM = $rincianBiayas->where('tipe', 'bbm');
-                        \Illuminate\Support\Facades\Log::debug('Filtered BBM for ' . $record->id . ': ' . $filteredBBM->count() . ' items');
-                        $totalBBM = $filteredBBM->sum('biaya');
-                        \Illuminate\Support\Facades\Log::debug('Calculated Total BBM for ' . $record->id . ': ' . $totalBBM);
-                        return 'Rp ' . number_format($totalBBM, 0, ',', '.');
-                    }),
+                    ->money('IDR')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('total_toll')
                     ->label('Total Toll')
-                    ->getStateUsing(function (\App\Models\RincianPengeluaran $record): string {
-                        \Illuminate\Support\Facades\Log::debug('RincianPengeluaran ID: ' . $record->id);
-                        $rincianBiayas = $record->rincianBiayas;
-                        \Illuminate\Support\Facades\Log::debug('RincianBiayas for ' . $record->id . ': ' . $rincianBiayas->count() . ' items');
-                        $filteredToll = $rincianBiayas->where('tipe', 'toll');
-                        \Illuminate\Support\Facades\Log::debug('Filtered Toll for ' . $record->id . ': ' . $filteredToll->count() . ' items');
-                        $totalToll = $filteredToll->sum('biaya');
-                        \Illuminate\Support\Facades\Log::debug('Calculated Total Toll for ' . $record->id . ': ' . $totalToll);
-                        return 'Rp ' . number_format($totalToll, 0, ',', '.');
-                    }),
+                    ->money('IDR')
+                    ->sortable(),
                 Tables\Columns\TextColumn::make('total_parkir')
                     ->label('Total Parkir')
-                    ->getStateUsing(function (\App\Models\RincianPengeluaran $record): string {
-                        $parkirFromRincianPengeluaran = $record->biaya_parkir ?? 0;
-                        $parkirFromRincianBiayas = $record->rincianBiayas->where('tipe', 'parkir')->sum('biaya');
-                        $totalParkir = $parkirFromRincianPengeluaran + $parkirFromRincianBiayas;
-                        return 'Rp ' . number_format($totalParkir, 0, ',', '.');
-                    }),
+                    ->money('IDR')
+                    ->sortable(),
 
             ])
             ->filters([
@@ -222,7 +204,6 @@ class RincianPengeluaranRelationManager extends RelationManager
                         'record' => $this->getOwnerRecord()->id,
                         'rincianPengeluaranId' => $record->id,
                     ])),
-                DeleteAction::make(),
             ])
             ->bulkActions([
                 Tables\Actions\BulkActionGroup::make([
@@ -234,7 +215,30 @@ class RincianPengeluaranRelationManager extends RelationManager
     protected function getTableQuery(): Builder
     {
         return $this->getRelationship()->getQuery()
-            ->with(['rincianBiayas']);
+            ->with([
+                'rincianBiayas',
+                'perjalananKendaraan.perjalanan.unitKerja',
+                'perjalananKendaraan.perjalanan.wilayah',
+                'perjalananKendaraan.pengemudi',
+                'perjalananKendaraan.kendaraan'
+            ])
+            ->leftJoin('rincian_biayas as bbm_biayas', function ($join) {
+                $join->on('rincian_pengeluarans.id', '=', 'bbm_biayas.rincian_pengeluaran_id')
+                     ->where('bbm_biayas.tipe', '=', 'bbm');
+            })
+            ->leftJoin('rincian_biayas as toll_biayas', function ($join) {
+                $join->on('rincian_pengeluarans.id', '=', 'toll_biayas.rincian_pengeluaran_id')
+                     ->where('toll_biayas.tipe', '=', 'toll');
+            })
+            ->leftJoin('rincian_biayas as parkir_biayas', function ($join) {
+                $join->on('rincian_pengeluarans.id', '=', 'parkir_biayas.rincian_pengeluaran_id')
+                     ->where('parkir_biayas.tipe', '=', 'parkir');
+            })
+            ->select('rincian_pengeluarans.*')
+            ->selectRaw('COALESCE(SUM(bbm_biayas.biaya), 0) as total_bbm')
+            ->selectRaw('COALESCE(SUM(toll_biayas.biaya), 0) as total_toll')
+            ->selectRaw('COALESCE(SUM(parkir_biayas.biaya), 0) + COALESCE(rincian_pengeluarans.biaya_parkir, 0) as total_parkir')
+            ->groupBy('rincian_pengeluarans.id');
     }
 
     protected function getPerjalananOptions(?string $search = null): array

@@ -25,6 +25,13 @@ class EditEntryPengeluaran extends EditRecord
         return [];
     }
 
+    protected function getHeaderWidgets(): array
+    {
+        return [
+            \App\Filament\Resources\EntryPengeluaranResource\Widgets\RincianStatsOverview::class,
+        ];
+    }
+
     protected function getFormActions(): array
     {
         return [];

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Models\RincianBiaya;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -27,5 +28,10 @@ class EntryPengeluaran extends Model
     public function rincianPengeluarans(): HasMany
     {
         return $this->hasMany(RincianPengeluaran::class);
+    }
+
+    public function rincianBiayas()
+    {
+        return $this->hasManyThrough(RincianBiaya::class, RincianPengeluaran::class);
     }
 }
