@@ -16,10 +16,10 @@ use PhpOffice\PhpSpreadsheet\Style\Alignment;
 class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, WithEvents, WithCustomStartCell, ShouldAutoSize
 {
     protected $entryPengeluaran;
-
-    // Asumsi nomor berkas bisa diambil dari relasi atau di-pass via constructor.
+    
+    // Asumsi nomor berkas bisa diambil dari relasi atau di-pass via constructor. 
     // Disini saya set default/placeholder sesuai gambar.
-    protected $nomorBerkas = '1125-1';
+    protected $nomorBerkas = '1125-1'; 
 
     public function __construct(EntryPengeluaran $entryPengeluaran)
     {
@@ -104,9 +104,9 @@ class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, W
         return [
             AfterSheet::class => function (AfterSheet $event) {
                 $sheet = $event->sheet;
-
+                
                 // --- 1. SETUP JUDUL (HEADER ATAS) ---
-
+                
                 // Baris 1: Judul Utama
                 $sheet->mergeCells('A1:O1');
                 $sheet->setCellValue('A1', 'Tanda Terima SPJ BBM dan Tol Th. 2025');
@@ -124,17 +124,17 @@ class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, W
 
                 // Baris 3: Tanggal (Rata Kanan)
                 // Mengambil tanggal hari ini atau tanggal spesifik
-                $tanggalCetak = \Carbon\Carbon::now()->translatedFormat('d F Y');
+                $tanggalCetak = \Carbon\Carbon::now()->translatedFormat('d F Y'); 
                 $sheet->setCellValue('O3', $tanggalCetak);
                 $sheet->getStyle('O3')->applyFromArray([
                     'alignment' => ['horizontal' => Alignment::HORIZONTAL_RIGHT]
                 ]);
 
                 // --- 2. STYLING TABEL DATA ---
-
+                
                 // Mencari baris terakhir data
                 $lastRow = $sheet->getHighestRow();
-
+                
                 // Style Header Tabel (Baris 4)
                 $sheet->getStyle('A4:O4')->applyFromArray([
                     'font' => ['bold' => true],
@@ -149,12 +149,12 @@ class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, W
 
 
                 // --- 3. FOOTER (TANDA TANGAN & REKAPITULASI) ---
-
+                
                 $footerRow = $lastRow + 2; // Memberi jarak 1 baris kosong
 
                 // Tanda Tangan Kiri
                 $sheet->setCellValue('B' . $footerRow, 'Diserahkan Oleh:');
-
+                
                 // Tanda Tangan Tengah
                 $sheet->setCellValue('D' . $footerRow, 'Diterima Oleh:');
 
@@ -162,7 +162,7 @@ class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, W
                 // Layout disesuaikan dengan gambar:
                 // Judul rekap ada di baris footerRow
                 // Nilai rekap ada di baris footerRow + 1
-
+                
                 $rekapHeaderRow = $footerRow;
                 $rekapValueRow = $footerRow + 1;
 
@@ -182,7 +182,7 @@ class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, W
                 // Rumus SUM Total
                 // Total BBM (Kolom L)
                 $sheet->setCellValue('L' . $rekapValueRow, '=SUM(L5:L' . $lastRow . ')');
-
+                
                 // Total Tol (Kolom N di data, tapi ditaruh di M di rekap sesuai gambar layout visual)
                 // Perhatikan: Data Tol ada di kolom N, tapi kotak rekap Tol ada di kolom M
                 $sheet->setCellValue('M' . $rekapValueRow, '=SUM(N5:N' . $lastRow . ')');

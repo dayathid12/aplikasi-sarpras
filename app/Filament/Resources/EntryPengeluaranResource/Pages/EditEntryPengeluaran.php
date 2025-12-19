@@ -8,6 +8,7 @@ use App\Models\Perjalanan;
 use App\Models\Staf; // Tambahkan ini
 use App\Models\PerjalananKendaraan;
 use Filament\Actions;
+use Filament\Actions\Action; // Import Action class
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Form;
@@ -15,6 +16,8 @@ use Filament\Resources\Pages\EditRecord;
 use Filament\Support\Enums\MaxWidth;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\HtmlString;
+use Maatwebsite\Excel\Facades\Excel; // Import Excel facade
+use App\Exports\RincianBiayaExport; // Import your Export class
 
 class EditEntryPengeluaran extends EditRecord
 {
@@ -22,7 +25,15 @@ class EditEntryPengeluaran extends EditRecord
 
     protected function getHeaderActions(): array
     {
-        return [];
+        return [
+            Action::make('downloadExcel')
+                ->label('Download Excel')
+                ->color('success')
+                ->icon('heroicon-o-document-arrow-down')
+                ->action(function () {
+                    return Excel::download(new RincianBiayaExport($this->record), 'rincian-biaya-' . $this->record->id . '.xlsx');
+                }),
+        ];
     }
 
     protected function getHeaderWidgets(): array
