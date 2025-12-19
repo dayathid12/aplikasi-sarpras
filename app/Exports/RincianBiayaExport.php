@@ -3,6 +3,7 @@
 namespace App\Exports;
 
 use App\Models\EntryPengeluaran;
+use App\Models\RincianPengeluaran; // Import RincianPengeluaran model
 use Maatwebsite\Excel\Concerns\FromCollection;
 use Maatwebsite\Excel\Concerns\WithHeadings;
 use Maatwebsite\Excel\Concerns\WithMapping;
@@ -12,22 +13,21 @@ use Maatwebsite\Excel\Events\AfterSheet;
 use Maatwebsite\Excel\Concerns\ShouldAutoSize;
 use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use Illuminate\Support\Collection; // Import Collection class
 
 class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, WithEvents, WithCustomStartCell, ShouldAutoSize
 {
     protected $entryPengeluaran;
-    
-    // Asumsi nomor berkas bisa diambil dari relasi atau di-pass via constructor. 
-    // Disini saya set default/placeholder sesuai gambar.
-    protected $nomorBerkas = '1125-1'; 
+    protected $nomorBerkas; // Will be set dynamically
 
     public function __construct(EntryPengeluaran $entryPengeluaran)
     {
         $this->entryPengeluaran = $entryPengeluaran;
+        // Assuming nomor berkas comes from the first related EntryPengeluaran's Perjalanan
+        $this->nomorBerkas = $entryPengeluaran->rincianPengeluarans->first()
+                                ->perjalananKendaraan->perjalanan->nomor_perjalanan ?? 'N/A';
     }
 
-    // Mengatur agar tabel data dimulai dari baris ke-4
-    // (Memberi ruang untuk Judul di baris 1-3)
     public function startCell(): string
     {
         return 'A4';
@@ -35,7 +35,6 @@ class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, W
 
     public function headings(): array
     {
-        // Disesuaikan persis dengan gambar (15 Kolom)
         return [
             'No.',
             'Nomor Surat Jalan',
@@ -45,7 +44,7 @@ class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, W
             'Unit Kerja/UKM',
             'Nopol Kendaraan',
             'Pengemudi',
-            'Kode AT', // Sesuai gambar (mungkin Kode ATM terpotong jadi Kode AT)
+            'Kode AT', 
             'Jenis BBM',
             'Volume (liter)',
             'Biaya BBM (Rp.)',
@@ -55,7 +54,7 @@ class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, W
         ];
     }
 
-    public function collection()
+    public function collection(): Collection
     {
         return $this->entryPengeluaran->rincianPengeluarans()
             ->with([
@@ -66,12 +65,39 @@ class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, W
                 'rincianBiayas'
             ])
             ->get()
-            ->flatMap(function ($rincianPengeluaran) {
-                return $rincianPengeluaran->rincianBiayas->map(function ($biaya) use ($rincianPengeluaran) {
-                    $data = array_merge($rincianPengeluaran->toArray(), $biaya->toArray());
-                    $data['perjalananKendaraan'] = $rincianPengeluaran->perjalananKendaraan;
-                    return (object) $data;
-                });
+            ->map(function ($rincianPengeluaran) {
+                $totalBBM = 0;
+                $totalTol = 0;
+                $totalParkir = 0;
+                $jenisBBM = '';
+                $volumeBBM = '';
+                $kodeKartuTol = '-'; // Default
+                $kodeAT = 'KK'; // Default, as per user's hardcoded example
+
+                foreach ($rincianPengeluaran->rincianBiayas as $biaya) {
+                    if ($biaya->tipe === 'bbm') {
+                        $totalBBM += $biaya->biaya;
+                        $jenisBBM = $biaya->jenis_bbm;
+                        $volumeBBM = $biaya->volume;
+                    } elseif ($biaya->tipe === 'tol') {
+                        $totalTol += $biaya->biaya;
+                        // Assuming 'm' from user's example in map means some type of card
+                        $kodeKartuTol = 'm'; 
+                    } elseif ($biaya->tipe === 'parkir_lainnya') {
+                        $totalParkir += $biaya->biaya;
+                    }
+                }
+
+                // Attach aggregated data and relationships directly to the rincianPengeluaran object for easier mapping
+                $rincianPengeluaran->aggregated_total_bbm = $totalBBM;
+                $rincianPengeluaran->aggregated_jenis_bbm = $jenisBBM;
+                $rincianPengeluaran->aggregated_volume_bbm = $volumeBBM;
+                $rincianPengeluaran->aggregated_total_tol = $totalTol;
+                $rincianPengeluaran->aggregated_kode_kartu_tol = $kodeKartuTol;
+                $rincianPengeluaran->aggregated_total_parkir = $totalParkir;
+                $rincianPengeluaran->aggregated_kode_at = $kodeAT;
+
+                return $rincianPengeluaran;
             });
     }
 
@@ -79,23 +105,28 @@ class RincianBiayaExport implements FromCollection, WithHeadings, WithMapping, W
     {
         static $no = 1;
 
-        // Mapping disesuaikan agar cocok dengan urutan headings
+        $perjalanan = $row->perjalananKendaraan->perjalanan;
+        $pengemudi = $row->perjalananKendaraan->pengemudi;
+        $kendaraan = $row->perjalananKendaraan->kendaraan;
+        $unitKerja = $perjalanan->unitKerja;
+        $wilayah = $perjalanan->wilayah;
+
         return [
             $no++,
-            $row->nomor_perjalanan ?? '',
-            $row->kota_kabupaten ?? '',
-            $row->alamat_tujuan ?? '',
-            $row->perjalananKendaraan->perjalanan->nama_kegiatan ?? '',
-            $row->nama_unit_kerja ?? '', // Sesuaikan field relasi unit kerja
-            $row->nopol_kendaraan ?? '',
-            $row->nama_pengemudi ?? '',
-            'KK', // Hardcode contoh dari gambar (Kode AT), sesuaikan jika dinamis
-            $row->tipe == 'bbm' ? ($row->jenis_bbm ?? '') : '',
-            $row->tipe == 'bbm' ? ($row->volume ?? '') : '',
-            $row->tipe == 'bbm' ? ($row->biaya ?? '') : '',
-            $row->tipe == 'tol' ? 'm' : '-', // Contoh dari gambar, sesuaikan logikanya
-            $row->tipe == 'tol' ? ($row->biaya ?? '') : '',
-            $row->tipe == 'parkir_lainnya' ? ($row->biaya ?? '') : '',
+            $perjalanan->nomor_perjalanan ?? '',
+            $wilayah->nama_wilayah ?? '',
+            $perjalanan->alamat_tujuan ?? '',
+            $perjalanan->nama_kegiatan ?? '',
+            $unitKerja->nama_unit_kerja ?? '',
+            $kendaraan->nopol_kendaraan ?? '',
+            $pengemudi->nama_staf ?? '',
+            $row->aggregated_kode_at, 
+            $row->aggregated_jenis_bbm,
+            $row->aggregated_volume_bbm,
+            $row->aggregated_total_bbm,
+            $row->aggregated_kode_kartu_tol,
+            $row->aggregated_total_tol,
+            $row->aggregated_total_parkir,
         ];
     }
 
