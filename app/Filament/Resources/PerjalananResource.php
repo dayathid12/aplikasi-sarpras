@@ -315,12 +315,12 @@ class PerjalananResource extends Resource
                                     ->required()
                                     ->displayFormat('d/m/Y H:i')
                                     ->native(false)
-                                    ->live(onBlur: true),
+                                    ->live(),
                                 Forms\Components\DateTimePicker::make('waktu_kepulangan')
                                     ->label('Waktu Kepulangan')
                                     ->displayFormat('d/m/Y H:i')
                                     ->native(false)
-                                    ->live(onBlur: true),
+                                    ->live(),
                             ]),
 
                         \Filament\Forms\Components\Repeater::make('details')
@@ -329,9 +329,10 @@ class PerjalananResource extends Resource
                             ->schema([
                                 \Filament\Forms\Components\Select::make('kendaraan_nopol')
                                     ->label('Nomor Polisi Kendaraan')
-                                    ->options(function (Forms\Get $get, ?Model $record) {
+                                    ->options(function (Forms\Get $get) {
                                         $startTime = $get('../../waktu_keberangkatan');
                                         $endTime = $get('../../waktu_kepulangan');
+                                        $currentPerjalananId = $get('../../id'); // Get the ID of the main Perjalanan record
 
                                         // If no time range, return all vehicles
                                         if (!$startTime || !$endTime) {
@@ -345,19 +346,12 @@ class PerjalananResource extends Resource
                                             });
                                         }
 
-                                        $currentPerjalananId = null;
-                                        if ($record && $record->perjalanan) {
-                                            $currentPerjalananId = $record->perjalanan->id;
-                                        } else if ($record && $record->getKey()) {
-                                            $currentPerjalananId = $record->getKey();
-                                        }
-
-
                                         // Get NOPOLs of vehicles that are already scheduled and overlap
                                         $unavailableNopols = Perjalanan::query()
                                             ->where('status_perjalanan', 'Terjadwal')
-                                            ->when($currentPerjalananId, fn ($query) => $query->where('perjalanans.id', '!=', $currentPerjalananId))
-                                            ->where(function ($query) use ($startTime, $endTime) {
+                                            // Exclude the current trip if it's being edited
+                                            ->when($currentPerjalananId, fn (Builder $query) => $query->where('perjalanans.id', '!=', $currentPerjalananId))
+                                            ->where(function (Builder $query) use ($startTime, $endTime) {
                                                 $query->where('waktu_keberangkatan', '<', $endTime)
                                                       ->where('waktu_kepulangan', '>', $startTime);
                                             })
@@ -380,6 +374,7 @@ class PerjalananResource extends Resource
                                     })
                                     ->searchable()
                                     ->required()
+                                    ->live() // Add live() instead of dependsOn()
                                     ->placeholder('Pilih nomor polisi...'),
                                 \Filament\Forms\Components\Select::make('pengemudi_id')
                                     ->label('Nama Pengemudi')
