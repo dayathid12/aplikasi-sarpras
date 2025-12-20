@@ -57,8 +57,14 @@ class PerjalananKendaraan extends Model
      *
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
-    public function asisten(): BelongsTo
-    {
-        return $this->belongsTo(Staf::class, 'asisten_id', 'staf_id');
+        public function asisten(): BelongsTo
+        {
+            return $this->belongsTo(Staf::class, 'asisten_id', 'staf_id');
+        }
+    
+        public function rincianPengeluarans(): \Illuminate\Database\Eloquent\Relations\HasMany
+        {
+            return $this->hasMany(RincianPengeluaran::class, 'perjalanan_id');
+        }
     }
-}
+    

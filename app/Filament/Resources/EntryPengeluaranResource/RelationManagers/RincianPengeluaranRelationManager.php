@@ -42,26 +42,60 @@ class RincianPengeluaranRelationManager extends RelationManager
                 Select::make('perjalanan_id')
                     ->label('Pilih Perjalanan')
                     ->searchable()
-                    ->getSearchResultsUsing(fn (string $search): array => $this->getPerjalananOptions($search))
-                    ->getOptionLabelUsing(function (string $value): ?string {
-                        $perjalananKendaraan = \App\Models\PerjalananKendaraan::with([
-                            'perjalanan.unitKerja',
-                            'perjalanan.wilayah',
-                            'pengemudi',
-                            'kendaraan'
-                        ])->find($value);
+                    ->getSearchResultsUsing(function (string $search) {
+                        $query = \App\Models\PerjalananKendaraan::query()
+                            ->whereDoesntHave('rincianPengeluarans');
 
-                        if (!$perjalananKendaraan || !$perjalananKendaraan->perjalanan) {
-                            return null;
+                        if (!empty($search)) {
+                            $query->where(function (Builder $q) use ($search) {
+                                $q->whereHas('perjalanan', function (Builder $q) use ($search) {
+                                    $q->where('nama_kegiatan', 'like', "%{$search}%")
+                                        ->orWhere('alamat_tujuan', 'like', "%{$search}%")
+                                        ->orWhere('nomor_perjalanan', 'like', "%{$search}%");
+                                })->orWhereHas('pengemudi', function (Builder $q) use ($search) {
+                                    $q->where('nama_staf', 'like', "%{$search}%");
+                                })->orWhereHas('kendaraan', function (Builder $q) use ($search) {
+                                    $q->where('nopol_kendaraan', 'like', "%{$search}%");
+                                });
+                            });
                         }
 
-                        $perjalanan = $perjalananKendaraan->perjalanan;
+                        return $query->get()->mapWithKeys(function ($record) {
+                            $perjalanan = $record->perjalanan;
+                            if (!$perjalanan) return [];
+                            
+                            $unitKerjaNama = $perjalanan->unitKerja->nama_unit_kerja ?? 'Tidak Ada Unit Kerja';
+                            $wilayahNama = $perjalanan->wilayah->nama_wilayah ?? 'Tidak Ada Wilayah';
+                            $waktuKeberangkatanFormatted = $perjalanan->waktu_keberangkatan ? $perjalanan->waktu_keberangkatan->format('d/m/Y') : 'Tidak Ada Waktu';
+
+                            $driverName = $record->pengemudi ? $record->pengemudi->nama_staf : 'Tidak Ada Pengemudi';
+                            $vehicleNopol = $record->kendaraan ? $record->kendaraan->nopol_kendaraan : 'Tidak Ada Kendaraan';
+
+                            $label = $perjalanan->nomor_perjalanan .
+                                ' - ' . $perjalanan->nama_kegiatan .
+                                ' - ' . $unitKerjaNama .
+                                ' - Pengemudi: ' . $driverName .
+                                ' - Kendaraan: ' . $vehicleNopol .
+                                ' - Tujuan: ' . $perjalanan->alamat_tujuan .
+                                ' (' . $wilayahNama . ')' .
+                                ' - Berangkat: ' . $waktuKeberangkatanFormatted;
+
+                            return [$record->id => $label];
+                        })->toArray();
+                    })
+                    ->getOptionLabelUsing(function ($value): ?string {
+                        $record = \App\Models\PerjalananKendaraan::find($value);
+                        if (!$record) return null;
+                        
+                        $perjalanan = $record->perjalanan;
+                        if (!$perjalanan) return null;
+
                         $unitKerjaNama = $perjalanan->unitKerja->nama_unit_kerja ?? 'Tidak Ada Unit Kerja';
                         $wilayahNama = $perjalanan->wilayah->nama_wilayah ?? 'Tidak Ada Wilayah';
                         $waktuKeberangkatanFormatted = $perjalanan->waktu_keberangkatan ? $perjalanan->waktu_keberangkatan->format('d/m/Y') : 'Tidak Ada Waktu';
 
-                        $driverName = $perjalananKendaraan->pengemudi ? $perjalananKendaraan->pengemudi->nama_staf : 'Tidak Ada Pengemudi';
-                        $vehicleNopol = $perjalananKendaraan->kendaraan ? $perjalananKendaraan->kendaraan->nopol_kendaraan : 'Tidak Ada Kendaraan';
+                        $driverName = $record->pengemudi ? $record->pengemudi->nama_staf : 'Tidak Ada Pengemudi';
+                        $vehicleNopol = $record->kendaraan ? $record->kendaraan->nopol_kendaraan : 'Tidak Ada Kendaraan';
 
                         return $perjalanan->nomor_perjalanan .
                             ' - ' . $perjalanan->nama_kegiatan .
@@ -72,7 +106,6 @@ class RincianPengeluaranRelationManager extends RelationManager
                             ' (' . $wilayahNama . ')' .
                             ' - Berangkat: ' . $waktuKeberangkatanFormatted;
                     })
-                    ->searchable()
                     ->nullable()
                     ->reactive()
                     ->afterStateUpdated(function ($state, Set $set) {
@@ -249,74 +282,5 @@ class RincianPengeluaranRelationManager extends RelationManager
             ->selectRaw('COALESCE(SUM(toll_biayas.biaya), 0) as total_toll')
             ->selectRaw('COALESCE(SUM(parkir_biayas.biaya), 0) + COALESCE(rincian_pengeluarans.biaya_parkir, 0) as total_parkir')
             ->groupBy('rincian_pengeluarans.id');
-    }
-
-    protected function getPerjalananOptions(?string $search = null): array
-    {
-        $options = [];
-        $query = \App\Models\PerjalananKendaraan::with([
-            'perjalanan' => function ($query) {
-                $query->with(['unitKerja', 'wilayah']);
-            },
-            'pengemudi',
-            'kendaraan'
-        ])
-        ->whereHas('perjalanan', function ($query) {
-            $query->whereIn('status_perjalanan', ['terjadwal', 'selesai']);
-        });
-
-        if ($search) {
-            $query->where(function ($subQuery) use ($search) {
-                $subQuery->whereHas('perjalanan', function ($perjalananQuery) use ($search) {
-                    $perjalananQuery->where('nama_kegiatan', 'like', "%{$search}%")
-                        ->orWhere('alamat_tujuan', 'like', "%{$search}%")
-                        ->orWhere('nomor_perjalanan', 'like', "%{$search}%");
-                    // Search in unitKerja relation
-                    $perjalananQuery->orWhereHas('unitKerja', function ($unitKerjaQuery) use ($search) {
-                        $unitKerjaQuery->where('nama_unit_kerja', 'like', "%{$search}%");
-                    });
-                    // Search in wilayah relation
-                    $perjalananQuery->orWhereHas('wilayah', function ($wilayahQuery) use ($search) {
-                        $wilayahQuery->where('nama_wilayah', 'like', "%{$search}%");
-                    });
-                })
-                ->orWhereHas('pengemudi', function ($pengemudiQuery) use ($search) {
-                    $pengemudiQuery->where('nama_staf', 'like', "%{$search}%");
-                })
-                ->orWhereHas('kendaraan', function ($kendaraanQuery) use ($search) {
-                    $kendaraanQuery->where('nopol_kendaraan', 'like', "%{$search}%");
-                });
-            });
-        }
-
-        $perjalananKendaraans = $query->get();
-
-        foreach ($perjalananKendaraans as $pk) {
-            if (!$pk->perjalanan) {
-                continue;
-            }
-
-            $perjalanan = $pk->perjalanan;
-            $unitKerjaNama = $perjalanan->unitKerja->nama_unit_kerja ?? 'Tidak Ada Unit Kerja';
-            $wilayahNama = $perjalanan->wilayah->nama_wilayah ?? 'Tidak Ada Wilayah';
-            $waktuKeberangkatanFormatted = $pk->perjalanan->waktu_keberangkatan ? $pk->perjalanan->waktu_keberangkatan->format('d/m/Y') : 'Tidak Ada Waktu';
-
-            $driverName = $pk->pengemudi ? $pk->pengemudi->nama_staf : 'Tidak Ada Pengemudi';
-            $vehicleNopol = $pk->kendaraan ? $pk->kendaraan->nopol_kendaraan : 'Tidak Ada Kendaraan';
-
-            $optionKey = $pk->id;
-
-            $optionLabel = $perjalanan->nomor_perjalanan .
-                ' - ' . $perjalanan->nama_kegiatan .
-                ' - ' . $unitKerjaNama .
-                ' - Pengemudi: ' . $driverName .
-                ' - Kendaraan: ' . $vehicleNopol .
-                ' - Tujuan: ' . $perjalanan->alamat_tujuan .
-                ' (' . $wilayahNama . ')' .
-                ' - Berangkat: ' . $waktuKeberangkatanFormatted;
-
-            $options[$optionKey] = $optionLabel;
-        }
-        return $options;
     }
 }
