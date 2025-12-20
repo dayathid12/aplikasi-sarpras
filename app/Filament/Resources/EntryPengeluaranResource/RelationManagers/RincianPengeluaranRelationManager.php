@@ -35,6 +35,15 @@ class RincianPengeluaranRelationManager extends RelationManager
 
     // protected static string $view = 'filament.resources.entry-pengeluaran-resource.relation-managers.rincian-pengeluaran-relation-manager.index';
 
+    protected function mutateFormDataBeforeCreate(array $data): array
+    {
+        if (!empty($data['nopol_kendaraan'])) {
+            $data['nopol_kendaraan'] = explode(' - ', $data['nopol_kendaraan'])[0];
+        }
+    
+        return $data;
+    }
+
     public function form(Form $form): Form
     {
         return $form
@@ -60,16 +69,26 @@ class RincianPengeluaranRelationManager extends RelationManager
                             });
                         }
 
-                        return $query->get()->mapWithKeys(function ($record) {
+                        return $query->with([
+                            'perjalanan.unitKerja',
+                            'perjalanan.wilayah',
+                            'pengemudi',
+                            'kendaraan',
+                        ])->get()->mapWithKeys(function ($record) {
                             $perjalanan = $record->perjalanan;
                             if (!$perjalanan) return [];
-                            
+
                             $unitKerjaNama = $perjalanan->unitKerja->nama_unit_kerja ?? 'Tidak Ada Unit Kerja';
                             $wilayahNama = $perjalanan->wilayah->nama_wilayah ?? 'Tidak Ada Wilayah';
-                            $waktuKeberangkatanFormatted = $perjalanan->waktu_keberangkatan ? $perjalanan->waktu_keberangkatan->format('d/m/Y') : 'Tidak Ada Waktu';
-
                             $driverName = $record->pengemudi ? $record->pengemudi->nama_staf : 'Tidak Ada Pengemudi';
-                            $vehicleNopol = $record->kendaraan ? $record->kendaraan->nopol_kendaraan : 'Tidak Ada Kendaraan';
+                            $vehicleNopol = 'Tidak Ada Kendaraan';
+                            if ($record->kendaraan) {
+                                $vehicleNopol = implode(' - ', array_filter([
+                                    $record->kendaraan->nopol_kendaraan,
+                                    $record->kendaraan->jenis_kendaraan,
+                                    $record->kendaraan->merk_type,
+                                ]));
+                            }
 
                             $label = $perjalanan->nomor_perjalanan .
                                 ' - ' . $perjalanan->nama_kegiatan .
@@ -84,9 +103,14 @@ class RincianPengeluaranRelationManager extends RelationManager
                         })->toArray();
                     })
                     ->getOptionLabelUsing(function ($value): ?string {
-                        $record = \App\Models\PerjalananKendaraan::find($value);
+                        $record = \App\Models\PerjalananKendaraan::with([
+                            'perjalanan.unitKerja',
+                            'perjalanan.wilayah',
+                            'pengemudi',
+                            'kendaraan',
+                        ])->find($value);
                         if (!$record) return null;
-                        
+
                         $perjalanan = $record->perjalanan;
                         if (!$perjalanan) return null;
 
@@ -95,7 +119,14 @@ class RincianPengeluaranRelationManager extends RelationManager
                         $waktuKeberangkatanFormatted = $perjalanan->waktu_keberangkatan ? $perjalanan->waktu_keberangkatan->format('d/m/Y') : 'Tidak Ada Waktu';
 
                         $driverName = $record->pengemudi ? $record->pengemudi->nama_staf : 'Tidak Ada Pengemudi';
-                        $vehicleNopol = $record->kendaraan ? $record->kendaraan->nopol_kendaraan : 'Tidak Ada Kendaraan';
+                        $vehicleNopol = 'Tidak Ada Kendaraan';
+                        if ($record->kendaraan) {
+                            $vehicleNopol = implode(' - ', array_filter([
+                                $record->kendaraan->nopol_kendaraan,
+                                $record->kendaraan->jenis_kendaraan,
+                                $record->kendaraan->merk_type,
+                            ]));
+                        }
 
                         return $perjalanan->nomor_perjalanan .
                             ' - ' . $perjalanan->nama_kegiatan .
@@ -131,7 +162,16 @@ class RincianPengeluaranRelationManager extends RelationManager
                                 $set('nama_unit_kerja', $perjalanan->unitKerja ? $perjalanan->unitKerja->nama_unit_kerja : null);
 
                                 // Set vehicle details
-                                $set('nopol_kendaraan', $perjalananKendaraan->kendaraan ? $perjalananKendaraan->kendaraan->nopol_kendaraan : null);
+                                if ($perjalananKendaraan->kendaraan) {
+                                    $vehicleInfo = implode(' - ', array_filter([
+                                        $perjalananKendaraan->kendaraan->nopol_kendaraan,
+                                        $perjalananKendaraan->kendaraan->jenis_kendaraan,
+                                        $perjalananKendaraan->kendaraan->merk_type,
+                                    ]));
+                                    $set('nopol_kendaraan', $vehicleInfo);
+                                } else {
+                                    $set('nopol_kendaraan', null);
+                                }
 
                                 // Set wilayah details
                                 $set('kota_kabupaten', $perjalanan->wilayah ? $perjalanan->wilayah->nama_wilayah : null);
@@ -150,7 +190,7 @@ class RincianPengeluaranRelationManager extends RelationManager
 
                 TextInput::make('nomor_perjalanan')
                     ->label('Nomor Perjalanan')
-                    ->disabled(),
+                    ->readOnly(),
                 TextInput::make('waktu_keberangkatan')
                     ->label('Waktu Berangkat ')
                     ->readOnly()
@@ -170,20 +210,20 @@ class RincianPengeluaranRelationManager extends RelationManager
                     }),
                 TextInput::make('alamat_tujuan')
                     ->label('Alamat Tujuan')
-                    ->disabled(),
+                    ->readOnly(),
                 TextInput::make('nama_pengemudi')
                     ->label('Nama Pengemudi')
-                    ->disabled(),
+                    ->readOnly(),
                 TextInput::make('nama_unit_kerja')
                     ->label('Unit Kerja/Fakultas/UKM')
-                    ->disabled(),
+                    ->readOnly(),
                 TextInput::make('nopol_kendaraan')
                     ->label('Nomor Polisi Kendaraan')
-                    ->disabled(),
+                    ->readOnly(),
 
                 TextInput::make('kota_kabupaten')
                     ->label('Kota Kabupaten')
-                    ->disabled(),
+                    ->readOnly(),
             ]);
     }
 
@@ -204,7 +244,18 @@ class RincianPengeluaranRelationManager extends RelationManager
                 Tables\Columns\TextColumn::make('perjalananKendaraan.perjalanan.unitKerja.nama_unit_kerja')
                     ->label('Unit Kerja/Fakultas/UKM'),
                 Tables\Columns\TextColumn::make('perjalananKendaraan.kendaraan.nopol_kendaraan')
-                    ->label('Nomor Polisi Kendaraan'),
+                    ->label('Nomor Polisi Kendaraan')
+                    ->formatStateUsing(function ($state, $record) {
+                        if (empty($record->perjalananKendaraan->kendaraan)) {
+                            return '';
+                        }
+                        $kendaraan = $record->perjalananKendaraan->kendaraan;
+                        return implode(' - ', array_filter([
+                            $kendaraan->nopol_kendaraan,
+                            $kendaraan->jenis_kendaraan,
+                            $kendaraan->merk_type,
+                        ]));
+                    }),
                 Tables\Columns\TextColumn::make('perjalananKendaraan.perjalanan.wilayah.nama_wilayah')
                     ->label('Kota Kabupaten'),
                 Tables\Columns\TextColumn::make('total_bbm')

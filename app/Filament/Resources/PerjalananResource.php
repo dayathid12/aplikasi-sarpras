@@ -327,7 +327,14 @@ class PerjalananResource extends Resource
                             ->schema([
                                 \Filament\Forms\Components\Select::make('kendaraan_nopol')
                                     ->label('Nomor Polisi Kendaraan')
-                                    ->options(\App\Models\Kendaraan::all()->pluck('nopol_kendaraan', 'nopol_kendaraan'))
+                                    ->options(\App\Models\Kendaraan::all()->mapWithKeys(function ($kendaraan) {
+                                        $label = implode(' - ', array_filter([
+                                            $kendaraan->nopol_kendaraan,
+                                            $kendaraan->jenis_kendaraan,
+                                            $kendaraan->merk_type,
+                                        ]));
+                                        return [$kendaraan->nopol_kendaraan => $label];
+                                    }))
                                     ->searchable()
                                     ->required()
                                     ->placeholder('Pilih nomor polisi...'),
@@ -385,7 +392,14 @@ class PerjalananResource extends Resource
 
                 Tables\Filters\SelectFilter::make('kendaraan_nopol')
                     ->label('Nomor Polisi Kendaraan')
-                    ->options(Kendaraan::all()->pluck('nopol_kendaraan', 'nopol_kendaraan'))
+                    ->options(Kendaraan::all()->mapWithKeys(function ($kendaraan) {
+                        $label = implode(' - ', array_filter([
+                            $kendaraan->nopol_kendaraan,
+                            $kendaraan->jenis_kendaraan,
+                            $kendaraan->merk_type,
+                        ]));
+                        return [$kendaraan->nopol_kendaraan => $label];
+                    }))
                     ->searchable()
                     ->query(function (Builder $query, array $data): Builder {
                         return $query->when(

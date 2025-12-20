@@ -98,7 +98,8 @@ class KendaraanResource extends Resource
                     ->color('primary')
                     ->icon('heroicon-o-truck')
                     ->weight('bold')
-                    ->searchable(),
+                    ->searchable()
+                    ->formatStateUsing(fn (string $state, $record) => $state . ' - ' . $record->jenis_kendaraan),
                 Tables\Columns\TextColumn::make('merk_type')
                     ->label('Merk & Tipe')
                     ->badge()
