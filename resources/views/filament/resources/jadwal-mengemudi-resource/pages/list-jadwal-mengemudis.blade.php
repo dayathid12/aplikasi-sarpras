@@ -73,7 +73,7 @@
                 <div class="absolute top-0 right-0 -mt-4 -mr-4 w-24 h-24 rounded-full bg-emerald-50 blur-xl opacity-50"></div>
                 <div class="relative flex justify-between items-start">
                     <div>
-                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">STATUS</p>
+                        <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wider mb-2">Pengemudi</p>
                         <h3 class="text-xl font-extrabold text-emerald-600">{{ $userName ?? 'Unknown' }}</h3>
                         <p class="text-xs text-slate-500 mt-1">NIP: {{ $userNip ?? 'N/A' }}</p>
                     </div>
@@ -105,6 +105,8 @@
                                 'selesai' => ['label' => 'FINISHED', 'class' => 'bg-emerald-50 text-emerald-600 border-emerald-200'],
                                 default => ['label' => 'Status Perjalanan', 'class' => 'bg-red-50 text-red-600 border-red-200'],
                             };
+                            $personnelStaf = \App\Models\Staf::where('nama_staf', $record->nama_personil_perwakilan)->first();
+                            $personnelNip = $personnelStaf ? $personnelStaf->nip_staf : 'N/A';
                         @endphp
 
                         <div class="bg-white rounded-2xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-slate-100 hover:shadow-lg transition-all duration-300 p-6">
@@ -178,12 +180,7 @@
                                             <div>
                                                 <div class="font-bold text-slate-800 text-sm leading-tight">{{ $record->nama_personil_perwakilan }}</div>
                                                 <div class="text-xs text-slate-500 mt-0.5">{{ $record->unitKerja->nama_unit_kerja ?? 'Staff' }}</div>
-                                                @php
-                                                    $driverNip = $record->details->first()?->pengemudi?->nip_staf;
-                                                @endphp
-                                                @if ($driverNip)
-                                                    <div class="text-xs text-slate-500 mt-0.5">NIP: {{ $driverNip }}</div>
-                                                @endif
+
                                                 <div class="text-xs text-slate-500 mt-0.5">
                                                     Kontak: <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $record->kontak_pengguna_perwakilan) }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">{{ $record->kontak_pengguna_perwakilan }}</a>
                                                 </div>
@@ -191,7 +188,7 @@
                                         </div>
                                     </div>
                                     <div class="flex flex-col gap-2 justify-start">
-                                        <a href="#" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-white border border-slate-200 hover:border-blue-300 text-slate-500 hover:text-blue-600 transition-all shadow-sm">
+                                        <a href="{{ route('perjalanan.pdf', $record->nomor_perjalanan) }}" target="_blank" class="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 hover:bg-white border border-slate-200 hover:border-blue-300 text-slate-500 hover:text-blue-600 transition-all shadow-sm">
                                             <i class="fas fa-file-pdf"></i>
                                         </a>
                                     </div>

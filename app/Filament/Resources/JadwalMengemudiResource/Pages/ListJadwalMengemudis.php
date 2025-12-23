@@ -37,7 +37,7 @@ class ListJadwalMengemudis extends ListRecords
         $data['totalJam'] = $totalJam;
         $user = auth()->user();
         $data['userName'] = $user->name ?? 'Unknown';
-        $staf = \App\Models\Staf::find($user->staf_id);
+        $staf = \App\Models\Staf::where('nama_staf', $user->name)->first();
         $data['userNip'] = $staf ? $staf->nip_staf : 'N/A';
 
         return $data;
