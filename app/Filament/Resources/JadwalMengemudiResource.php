@@ -17,7 +17,9 @@ use Illuminate\Database\Eloquent\SoftDeletingScope;
 class JadwalMengemudiResource extends Resource
 {
     protected static ?string $model = Perjalanan::class;
-
+    protected static ?string $navigationLabel = 'Jadwal Mengemudi';
+    protected static ?string $navigationGroup = 'Poll Kendaraan';
+    protected static ?int $navigationSort = 2;
     protected static ?string $navigationIcon = 'heroicon-o-rectangle-stack';
 
     public static function form(Form $form): Form

@@ -20,9 +20,9 @@ class EntryPengeluaranResource extends Resource
 {
 
     protected static ?string $navigationLabel = 'Entry Pengeluaran';
-    
+
     protected static ?string $navigationGroup = 'Poll Kendaraan';
-    protected static ?int $navigationSort = 0;
+    protected static ?int $navigationSort = 2;
 
 
     public static function form(Form $form): Form
@@ -38,7 +38,7 @@ class EntryPengeluaranResource extends Resource
                     ->default(function () {
                         // Get the highest 'nomor_berkas'
                         $latestEntry = EntryPengeluaran::orderByRaw('CAST(nomor_berkas AS UNSIGNED) DESC')->first();
-                        
+
                         $newSequence = 1;
                         if ($latestEntry && is_numeric($latestEntry->nomor_berkas)) {
                             $newSequence = (int)$latestEntry->nomor_berkas + 1;

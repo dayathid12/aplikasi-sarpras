@@ -11,7 +11,8 @@ class ScheduleOverview extends Page
 
      protected static ?string $navigationLabel = 'Jadwal Kendaraan dan Pengemudi';
     protected static ?string $navigationGroup = 'Poll Kendaraan';
-    protected static ?int $navigationSort = 0;   protected static ?string $navigationIcon = 'heroicon-o-document-text';
+    protected static ?int $navigationSort = 1;
+    protected static ?string $navigationIcon = 'heroicon-o-document-text';
 
     protected static string $view = 'filament.pages.schedule-overview';
 
