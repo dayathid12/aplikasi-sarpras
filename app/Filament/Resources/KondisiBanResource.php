@@ -29,7 +29,9 @@ class KondisiBanResource extends Resource
                     ->relationship('kendaraan', 'nopol_kendaraan')
                     ->searchable()
                     ->preload()
-                    ->required(),
+                    ->required()
+                    ->hidden(fn () => filled(request()->query('nopol_kendaraan')))
+                    ->default(fn () => request()->query('nopol_kendaraan')),
                 Forms\Components\TextInput::make('ban_depan_kiri')
                     ->maxLength(255),
                 Forms\Components\TextInput::make('ban_depan_kanan')
