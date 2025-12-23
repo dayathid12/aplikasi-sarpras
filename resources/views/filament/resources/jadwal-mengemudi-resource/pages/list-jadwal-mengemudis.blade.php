@@ -182,7 +182,7 @@
                                                 <div class="text-xs text-slate-500 mt-0.5">{{ $record->unitKerja->nama_unit_kerja ?? 'Staff' }}</div>
 
                                                 <div class="text-xs text-slate-500 mt-0.5">
-                                                    Kontak: <a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $record->kontak_pengguna_perwakilan) }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">{{ $record->kontak_pengguna_perwakilan }}</a>
+                                                    <i class="fab fa-whatsapp text-green-600 mr-1"></i><a href="https://wa.me/{{ preg_replace('/[^0-9]/', '', $record->kontak_pengguna_perwakilan) }}" target="_blank" class="text-blue-600 hover:text-blue-800 underline">{{ $record->kontak_pengguna_perwakilan }}</a>
                                                 </div>
                                             </div>
                                         </div>
