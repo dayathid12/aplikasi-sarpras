@@ -25,24 +25,16 @@ class KondisiBanResource extends Resource
     {
         $schema = [];
 
-        if (!filled(request()->query('nopol_kendaraan'))) {
-            $schema[] = Forms\Components\Select::make('nopol_kendaraan')
-                ->relationship('kendaraan', 'nopol_kendaraan')
-                ->searchable()
-                ->preload()
-                ->required();
-        }
-
         $schema = array_merge($schema, [
-            Forms\Components\TextInput::make('ban_depan_kiri')
-                ->maxLength(255),
-            Forms\Components\TextInput::make('ban_depan_kanan')
-                ->maxLength(255),
-            Forms\Components\TextInput::make('ban_belakang_kiri')
-                ->maxLength(255),
-            Forms\Components\TextInput::make('ban_belakang_kanan')
-                ->maxLength(255),
             Forms\Components\TextInput::make('odo_terbaru')
+                ->numeric(),
+            Forms\Components\TextInput::make('ban_depan_kiri')
+                ->numeric(),
+            Forms\Components\TextInput::make('ban_depan_kanan')
+                ->numeric(),
+            Forms\Components\TextInput::make('ban_belakang_kiri')
+                ->numeric(),
+            Forms\Components\TextInput::make('ban_belakang_kanan')
                 ->numeric(),
         ]);
 
@@ -54,17 +46,19 @@ class KondisiBanResource extends Resource
     {
         return $table
             ->columns([
-                Tables\Columns\TextColumn::make('nopol_kendaraan')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('ban_depan_kiri')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('ban_depan_kanan')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('ban_belakang_kiri')
-                    ->searchable(),
-                Tables\Columns\TextColumn::make('ban_belakang_kanan')
-                    ->searchable(),
                 Tables\Columns\TextColumn::make('odo_terbaru')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('ban_depan_kiri')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('ban_depan_kanan')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('ban_belakang_kiri')
+                    ->numeric()
+                    ->sortable(),
+                Tables\Columns\TextColumn::make('ban_belakang_kanan')
                     ->numeric()
                     ->sortable(),
                 Tables\Columns\TextColumn::make('created_at')

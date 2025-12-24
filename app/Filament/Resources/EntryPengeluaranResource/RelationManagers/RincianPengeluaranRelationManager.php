@@ -40,7 +40,7 @@ class RincianPengeluaranRelationManager extends RelationManager
         if (!empty($data['nopol_kendaraan'])) {
             $data['nopol_kendaraan'] = explode(' - ', $data['nopol_kendaraan'])[0];
         }
-    
+
         return $data;
     }
 
@@ -80,6 +80,7 @@ class RincianPengeluaranRelationManager extends RelationManager
 
                             $unitKerjaNama = $perjalanan->unitKerja->nama_unit_kerja ?? 'Tidak Ada Unit Kerja';
                             $wilayahNama = $perjalanan->wilayah->nama_wilayah ?? 'Tidak Ada Wilayah';
+                            $waktuKeberangkatanFormatted = $perjalanan->waktu_keberangkatan ? $perjalanan->waktu_keberangkatan->format('d/m/Y') : 'Tidak Ada Waktu';
                             $driverName = $record->pengemudi ? $record->pengemudi->nama_staf : 'Tidak Ada Pengemudi';
                             $vehicleNopol = 'Tidak Ada Kendaraan';
                             if ($record->kendaraan) {

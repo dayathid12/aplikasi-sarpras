@@ -419,7 +419,7 @@
                                 </div>
 
                                 <div class="group">
-                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Status Pemohon <span class="text-red-500">*</span></label>
+                                    <label class="block text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">Status Pemohon  (Status yang akan berangkat ) <span class="text-red-500">*</span></label>
                                     <div class="flex flex-wrap gap-3">
                                         <label class="cursor-pointer">
                                             <input type="radio" name="status_sebagai" value="Mahasiswa" class="peer sr-only" required>
