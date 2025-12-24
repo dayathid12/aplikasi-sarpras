@@ -39,3 +39,6 @@ Route::delete('/biaya/{id}', function ($id) {
     \App\Models\RincianBiaya::findOrFail($id)->delete();
     return redirect()->back()->with('success', 'Item berhasil dihapus');
 })->name('biaya.delete');
+
+Route::get('/files/{encodedPath}', [PerjalananController::class, 'showFile'])->name('file.show');
+

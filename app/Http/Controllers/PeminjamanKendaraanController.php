@@ -7,6 +7,7 @@ use App\Models\Wilayah;
 use App\Models\UnitKerja;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Storage; // Added this line
 
 class PeminjamanKendaraanController extends Controller
 {
@@ -63,6 +64,17 @@ class PeminjamanKendaraanController extends Controller
             // Generate unique token/UUID
             $token = Str::uuid()->toString();
 
+            // Handle file uploads
+            $suratPeminjamanPath = null;
+            if ($request->hasFile('surat_peminjaman')) {
+                $suratPeminjamanPath = $request->file('surat_peminjaman')->store('surat-peminjaman-kendaraan', 'public');
+            }
+
+            $dokumenPendukungPath = null;
+            if ($request->hasFile('dokumen_pendukung')) {
+                $dokumenPendukungPath = $request->file('dokumen_pendukung')->store('dokumen-pendukung', 'public');
+            }
+
             // Prepare data for saving
             $saveData = [
                 'token' => $token,
@@ -83,12 +95,18 @@ class PeminjamanKendaraanController extends Controller
                 'provinsi' => $data['provinsi'] ?? null,
                 'uraian_singkat_kegiatan' => $data['uraian_singkat_kegiatan'] ?? null,
                 'catatan_keterangan_tambahan' => $data['catatan_keterangan_tambahan'] ?? null,
+                'surat_peminjaman_kendaraan' => $suratPeminjamanPath, // Save file path
+                'dokumen_pendukung' => $dokumenPendukungPath, // Save file path
                 'status_perjalanan' => 'Menunggu Persetujuan',
                 'jenis_operasional' => 'Peminjaman',
                 'status_operasional' => 'Belum Ditetapkan',
                 'pengemudi_id' => null,
                 'nopol_kendaraan' => null,
             ];
+
+            // Save file paths to saveData
+            $saveData['surat_peminjaman_kendaraan'] = $suratPeminjamanPath;
+            $saveData['dokumen_pendukung'] = $dokumenPendukungPath;
 
             // Save to database
             $perjalanan = Perjalanan::create($saveData);

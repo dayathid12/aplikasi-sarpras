@@ -21,6 +21,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\HtmlString;
+use Illuminate\Support\Str;
 
 class PerjalananResource extends Resource
 {
@@ -199,6 +200,7 @@ class PerjalananResource extends Resource
                                     ->maxSize(5120)
                                     ->downloadable()
                                     ->openable()
+                                    ->hidden()
                                     ->hintAction(
                                         Forms\Components\Actions\Action::make('view_surat')
                                             ->label('Lihat')
@@ -215,6 +217,7 @@ class PerjalananResource extends Resource
                                     ->maxSize(5120)
                                     ->downloadable()
                                     ->openable()
+                                    ->hidden()
                                     ->hintAction(
                                         Forms\Components\Actions\Action::make('view_dokumen')
                                             ->label('Lihat')
@@ -224,9 +227,75 @@ class PerjalananResource extends Resource
                                             ->visible(fn ($record) => $record && $record->dokumen_pendukung)
                                     ),
                             ]),
-                        Forms\Components\View::make('filament.forms.components.file-preview')
-                            ->visibleOn('edit'),
-                    ]),
+
+                        // Tambahkan Pratinjau Surat Izin Kegiatan
+                        Forms\Components\Placeholder::make('surat_izin_kegiatan_preview')
+                            ->label('Pratinjau Surat Izin Kegiatan')
+                            ->content(function (?Model $record) {
+                                if (!$record || !$record->surat_peminjaman_kendaraan) {
+                                    return new HtmlString('<p>Tidak ada Surat Peminjaman Kendaraan yang diunggah.</p>');
+                                }
+
+                                $filePath = $record->surat_peminjaman_kendaraan;
+                                $fileUrl = Storage::url($filePath);
+                                $fileExtension = pathinfo($filePath, PATHINFO_EXTENSION); // Dapatkan ekstensi file
+
+                                if (!Storage::disk('public')->exists($filePath)) {
+                                    return new HtmlString('<p>File tidak ditemukan.</p>');
+                                }
+
+                                if (in_array(strtolower($fileExtension), ['pdf'])) {
+                                    return new HtmlString("
+                                        <div style='width: 100%; height: 600px; border: 1px solid #e2e8f0; border-radius: 0.5rem; overflow: hidden;'>
+                                            <iframe src='{$fileUrl}' style='width: 100%; height: 100%; border: none;'></iframe>
+                                        </div>
+                                    ");
+                                } elseif (Str::contains($fileMimeType, 'image')) {
+                                    return new HtmlString("
+                                        <div style='width: 100%; text-align: center; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1rem;'>
+                                            <img src='{$fileUrl}' alt='Gambar Surat Peminjaman' style='max-width: 100%; height: auto; display: block; margin: auto;'>
+                                        </div>
+                                    ");
+                                }
+
+                                return new HtmlString('<p>Format file tidak dapat dipratinjau langsung.</p>');
+                            })
+                            ->visible(fn (?Model $record) => (bool) $record && (bool) $record->surat_peminjaman_kendaraan),
+
+                        // Tambahkan Pratinjau Dokumen Pendukung
+                        Forms\Components\Placeholder::make('dokumen_pendukung_preview')
+                            ->label('Pratinjau Dokumen Pendukung')
+                            ->content(function (?Model $record) {
+                                if (!$record || !$record->dokumen_pendukung) {
+                                    return new HtmlString('<p>Tidak ada Dokumen Pendukung yang diunggah.</p>');
+                                }
+
+                                $filePath = $record->dokumen_pendukung;
+                                $fileUrl = Storage::url($filePath);
+                                $fileExtension = pathinfo($filePath, PATHINFO_EXTENSION); // Dapatkan ekstensi file
+
+                                if (!Storage::disk('public')->exists($filePath)) {
+                                    return new HtmlString('<p>File tidak ditemukan.</p>');
+                                }
+
+                                if (in_array(strtolower($fileExtension), ['pdf'])) {
+                                    return new HtmlString("
+                                        <div style='width: 100%; height: 600px; border: 1px solid #e2e8f0; border-radius: 0.5rem; overflow: hidden;'>
+                                            <iframe src='{$fileUrl}' style='width: 100%; height: 100%; border: none;'></iframe>
+                                        </div>
+                                    ");
+                                } elseif (Str::contains($fileMimeType, 'image')) {
+                                    return new HtmlString("
+                                        <div style='width: 100%; text-align: center; border: 1px solid #e2e8f0; border-radius: 0.5rem; padding: 1rem;'>
+                                            <img src='{$fileUrl}' alt='Gambar Dokumen Pendukung' style='max-width: 100%; height: auto; display: block; margin: auto;'>
+                                        </div>
+                                    ");
+                                }
+
+                                return new HtmlString('<p>Format file tidak dapat dipratinjau langsung.</p>');
+                            })
+                            ->visible(fn (?Model $record) => (bool) $record && (bool) $record->dokumen_pendukung),
+                    ]), // Penutup Section Dokumen & Berkas
 
                 Forms\Components\Section::make('Kendaraan & Staf')
                     ->description('Informasi kendaraan dan pengemudi yang bertugas')
