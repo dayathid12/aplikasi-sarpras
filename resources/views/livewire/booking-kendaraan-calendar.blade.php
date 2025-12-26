@@ -27,6 +27,19 @@
             </div>
         </div>
 
+        {{-- Tipe Tugas Filter --}}
+        <div class="relative w-full sm:w-56 group">
+            <select wire:model.live="selectedTipeTugas" class="appearance-none w-full pl-4 pr-10 py-3 bg-white dark:bg-slate-800 border-2 border-slate-200 dark:border-slate-700 rounded-2xl text-sm font-bold text-slate-700 dark:text-slate-200 focus:outline-none focus:ring-4 focus:ring-green-500/20 focus:border-green-500 transition-all shadow-sm cursor-pointer hover:border-green-300">
+                <option value="Semua">Semua Tipe Tugas</option>
+                <option value="Antar & Jemput">Antar & Jemput</option>
+                <option value="Antar (Keberangkatan)">Antar (Keberangkatan)</option>
+                <option value="Jemput (Kepulangan)">Jemput (Kepulangan)</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none text-slate-400 group-hover:text-green-500 transition-colors">
+                <x-heroicon-m-chevron-down class="w-4 h-4" />
+            </div>
+        </div>
+
         {{-- Search --}}
         <div class="w-full lg:w-80 relative group">
             <input

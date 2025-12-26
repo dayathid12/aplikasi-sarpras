@@ -6,6 +6,7 @@ use App\Filament\Resources\JadwalMengemudiResource\Pages;
 use App\Filament\Resources\JadwalMengemudiResource\RelationManagers;
 use App\Models\JadwalMengemudi;
 use App\Models\Perjalanan;
+use Carbon\Carbon;
 use Filament\Forms;
 use Filament\Forms\Form;
 use Filament\Resources\Resource;
@@ -96,12 +97,78 @@ class JadwalMengemudiResource extends Resource
             ->filters([
                 Tables\Filters\SelectFilter::make('status_perjalanan')
                     ->options([
-                        'menunggu' => 'Menunggu',
-                        'berangkat' => 'Berangkat',
-                        'selesai' => 'Selesai',
-                        'dibatalkan' => 'Dibatalkan',
+                        'Menunggu Persetujuan' => 'Menunggu Persetujuan',
+                        'Terjadwal' => 'Terjadwal',
+                        'Ditolak' => 'Ditolak',
+                        'Selesai' => 'Selesai',
                     ])
                     ->label('Filter Status'),
+                
+                Tables\Filters\Filter::make('waktu_dan_tipe_penugasan')
+                    ->form([
+                        Forms\Components\Select::make('tipe_penugasan')
+                            ->label('Tipe Tugas')
+                            ->options([
+                                'Antar & Jemput' => 'Antar & Jemput',
+                                'Antar (Keberangkatan)' => 'Antar (Keberangkatan)',
+                                'Jemput (Kepulangan)' => 'Jemput (Kepulangan)',
+                            ])
+                            ->placeholder('Semua Tipe Tugas'),
+                        Forms\Components\DatePicker::make('starts_at')
+                            ->label('Dari Tanggal'),
+                        Forms\Components\DatePicker::make('ends_at')
+                            ->label('Sampai Tanggal'),
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return $query->when(
+                            $data['starts_at'] || $data['ends_at'] || $data['tipe_penugasan'],
+                            function (Builder $query) use ($data) {
+                                $startDate = $data['starts_at'] ? Carbon::parse($data['starts_at'])->startOfDay() : Carbon::create(1900, 1, 1);
+                                $endDate = $data['ends_at'] ? Carbon::parse($data['ends_at'])->endOfDay() : Carbon::create(2100, 12, 31);
+                                $tipeTugas = $data['tipe_penugasan'] ?? null;
+
+                                return $query->whereHas('details', function (Builder $detailsQuery) use ($startDate, $endDate, $tipeTugas) {
+                                    $detailsQuery->where(function (Builder $q) use ($startDate, $endDate, $tipeTugas) {
+                                        
+                                        $applyAntarJemput = !$tipeTugas || $tipeTugas === 'Antar & Jemput';
+                                        if ($applyAntarJemput) {
+                                            $q->orWhere(function (Builder $sub) use ($startDate, $endDate) {
+                                                $sub->where('tipe_penugasan', 'Antar & Jemput')
+                                                    ->whereHas('perjalanan', function ($p) use ($startDate, $endDate) {
+                                                        $p->where('waktu_keberangkatan', '<=', $endDate)
+                                                          ->where('waktu_kepulangan', '>=', $startDate);
+                                                    });
+                                            });
+                                        }
+
+                                        $applyAntar = !$tipeTugas || $tipeTugas === 'Antar (Keberangkatan)';
+                                        if ($applyAntar) {
+                                            $q->orWhere(function (Builder $sub) use ($startDate, $endDate) {
+                                                $sub->where('tipe_penugasan', 'Antar (Keberangkatan)')
+                                                    ->where('waktu_selesai_penugasan', '>=', $startDate)
+                                                    ->whereHas('perjalanan', function ($p) use ($endDate) {
+                                                        $p->where('waktu_keberangkatan', '<=', $endDate);
+                                                    });
+                                            });
+                                        }
+
+                                        $applyJemput = !$tipeTugas || $tipeTugas === 'Jemput (Kepulangan)';
+                                        if ($applyJemput) {
+                                            $q->orWhere(function (Builder $sub) use ($startDate, $endDate) {
+                                                $sub->where('tipe_penugasan', 'Jemput (Kepulangan)')
+                                                    ->where('waktu_selesai_penugasan', '>=', $startDate)
+                                                    ->whereHas('perjalanan', function ($p) use ($endDate) {
+                                                         $p->where('waktu_kepulangan', '<=', $endDate);
+                                                    });
+                                            });
+                                        }
+                                    });
+                                });
+                            }
+                        );
+                    })
+                    ->indicator('Menyaring berdasarkan waktu dan tipe penugasan'),
+
             ])
             ->actions([
                 Tables\Actions\ViewAction::make(),

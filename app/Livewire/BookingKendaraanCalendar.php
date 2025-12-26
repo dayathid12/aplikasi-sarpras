@@ -14,6 +14,7 @@ class BookingKendaraanCalendar extends Component
     public $selectedMonth;
     public $selectedYear;
     public $search = '';
+    public $selectedTipeTugas = 'Semua';
 
     public $vehicles = []; // Changed from $drivers
     public $dates = [];
@@ -45,6 +46,12 @@ class BookingKendaraanCalendar extends Component
         $this->loadPerjalananData();
     }
 
+    public function updatedSelectedTipeTugas($value)
+    {
+        $this->selectedTipeTugas = $value;
+        $this->loadPerjalananData();
+    }
+
     #[On('update-kendaraan-sort')]
     public function updateKendaraanSort($newOrder)
     {
@@ -60,7 +67,7 @@ class BookingKendaraanCalendar extends Component
         $startOfMonth = Carbon::create($this->selectedYear, $this->selectedMonth, 1)->startOfDay();
         $endOfMonth = Carbon::create($this->selectedYear, $this->selectedMonth, 1)->endOfMonth()->endOfDay();
 
-        // Populate $this->dates with all days of the month
+        // Populate $this->dates
         $this->dates = collect();
         $currentDay = $startOfMonth->copy();
         while ($currentDay->lte($endOfMonth)) {
@@ -68,73 +75,115 @@ class BookingKendaraanCalendar extends Component
             $currentDay->addDay();
         }
 
-        // Fetch all vehicles, filtered by search term
-        $queriedVehicles = Kendaraan::query() // Changed from Staf
+        // Fetch and prepare vehicles
+        $queriedVehicles = Kendaraan::query()
             ->when($this->search, function ($query) {
                 $query->where('merk_type', 'like', '%' . $this->search . '%')
                       ->orWhere('nopol_kendaraan', 'like', '%' . $this->search . '%');
             })
-            ->orderBy('sort_order') // Order by the new sort_order column
-            ->orderBy('merk_type')  // Secondary sort for consistency
+            ->orderBy('sort_order')
+            ->orderBy('merk_type')
             ->orderBy('nopol_kendaraan')
             ->get();
 
-        $this->vehicles = $queriedVehicles
-            ->map(function ($vehicle) {
-                return [
-                    'nopol_kendaraan' => $vehicle->nopol_kendaraan,
-                    'merk_type' => $vehicle->merk_type,
-                    'jenis_kendaraan' => $vehicle->jenis_kendaraan,
-                ];
-            })->values();
+        $this->vehicles = $queriedVehicles->map(fn ($v) => [
+            'nopol_kendaraan' => $v->nopol_kendaraan,
+            'merk_type' => $v->merk_type,
+            'jenis_kendaraan' => $v->jenis_kendaraan,
+        ])->values();
 
-        // Initialize manualSortOrder from the fetched database order
         $this->manualSortOrder = $queriedVehicles->pluck('nopol_kendaraan')->toArray();
 
-        // Fetch Perjalanan records for the selected month/year
-        // Eager load 'kendaraan' relationship to access details
-        $perjalanans = Perjalanan::query()
-            ->whereBetween('waktu_keberangkatan', [$startOfMonth, $endOfMonth])
+        // Fetch Perjalanan records
+        $perjalanansQuery = Perjalanan::query()
             ->whereIn('status_perjalanan', ['Terjadwal', 'Selesai'])
-            ->with(['kendaraan', 'wilayah'])
-            ->get();
+            ->with(['details.kendaraan', 'wilayah']); // Eager load relations from details
 
-        // Initialize perjalanansByVehicleAndDate
+        // Dynamic date range filtering
+        $perjalanansQuery->where(function ($query) use ($startOfMonth, $endOfMonth) {
+            $query->orWhere(function ($subQuery) use ($startOfMonth, $endOfMonth) {
+                $subQuery->whereHas('details', fn ($q) => $q->where('tipe_penugasan', 'Antar & Jemput'))
+                    ->where('waktu_keberangkatan', '<', $endOfMonth)
+                    ->where('waktu_kepulangan', '>', $startOfMonth);
+            })->orWhere(function ($subQuery) use ($startOfMonth, $endOfMonth) {
+                $subQuery->whereHas('details', fn ($q) => $q->where('tipe_penugasan', 'Antar (Keberangkatan)')->where('waktu_selesai_penugasan', '>', $startOfMonth))
+                    ->where('waktu_keberangkatan', '<', $endOfMonth);
+            })->orWhere(function ($subQuery) use ($startOfMonth, $endOfMonth) {
+                $subQuery->whereHas('details', fn ($q) => $q->where('tipe_penugasan', 'Jemput (Kepulangan)')->where('waktu_selesai_penugasan', '>', $startOfMonth))
+                    ->where('waktu_kepulangan', '<', $endOfMonth);
+            });
+        });
+
+        // Filter by tipe_penugasan
+        if ($this->selectedTipeTugas !== 'Semua') {
+            $perjalanansQuery->whereHas('details', fn ($q) => $q->where('tipe_penugasan', $this->selectedTipeTugas));
+        }
+
+        $perjalanans = $perjalanansQuery->get();
+
+        // Initialize data grid
         $this->perjalanansByVehicleAndDate = [];
         foreach ($this->vehicles as $vehicle) {
+            $this->perjalanansByVehicleAndDate[$vehicle['nopol_kendaraan']] = [];
             foreach ($this->dates as $date) {
                 $this->perjalanansByVehicleAndDate[$vehicle['nopol_kendaraan']][$date] = [];
             }
         }
 
-        // Populate perjalanansByVehicleAndDate
+        // Populate data grid
         foreach ($perjalanans as $perjalanan) {
-            // Check if perjalanan has any associated vehicles
-            if ($perjalanan->kendaraan->isNotEmpty()) {
-                $startDate = Carbon::parse($perjalanan->waktu_keberangkatan)->startOfDay();
-                $endDate = Carbon::parse($perjalanan->waktu_kepulangan)->endOfDay();
+            foreach ($perjalanan->details as $detail) {
+                if (($this->selectedTipeTugas !== 'Semua' && $detail->tipe_penugasan !== $this->selectedTipeTugas) || !$detail->kendaraan) {
+                    continue;
+                }
 
-                foreach ($perjalanan->kendaraan as $kendaraan) { // Loop through associated vehicles
-                    $vehicleNopol = $kendaraan->nopol_kendaraan;
+                $startDate = null;
+                $endDate = null;
 
-                    $currentPerjalananDay = $startDate->copy();
-                    while ($currentPerjalananDay->lte($endDate)) {
-                        $dateKey = $currentPerjalananDay->format('Y-m-d');
+                switch ($detail->tipe_penugasan) {
+                    case 'Antar & Jemput':
+                        $startDate = Carbon::parse($perjalanan->waktu_keberangkatan);
+                        $endDate = Carbon::parse($perjalanan->waktu_kepulangan);
+                        break;
+                    case 'Antar (Keberangkatan)':
+                        $startDate = Carbon::parse($perjalanan->waktu_keberangkatan);
+                        $endDate = Carbon::parse($detail->waktu_selesai_penugasan);
+                        break;
+                    case 'Jemput (Kepulangan)':
+                        $startDate = Carbon::parse($perjalanan->waktu_kepulangan);
+                        $endDate = Carbon::parse($detail->waktu_selesai_penugasan);
+                        break;
+                }
 
-                        // Ensure the date is within the currently displayed month and the vehicle exists
-                        if (isset($this->perjalanansByVehicleAndDate[$vehicleNopol][$dateKey])) {
+                if (!$startDate || !$endDate || $endDate->lt($startDate)) {
+                    continue;
+                }
+                
+                $vehicleNopol = $detail->kendaraan->nopol_kendaraan;
+                if (!isset($this->perjalanansByVehicleAndDate[$vehicleNopol])) {
+                    continue;
+                }
+
+                $currentPerjalananDay = $startDate->copy()->startOfDay();
+                while ($currentPerjalananDay->lte($endDate->copy()->endOfDay())) {
+                    $dateKey = $currentPerjalananDay->format('Y-m-d');
+                    if (isset($this->perjalanansByVehicleAndDate[$vehicleNopol][$dateKey])) {
+                        $isAlreadyAdded = collect($this->perjalanansByVehicleAndDate[$vehicleNopol][$dateKey])->contains('id', $perjalanan->id);
+                        if (!$isAlreadyAdded) {
                             $this->perjalanansByVehicleAndDate[$vehicleNopol][$dateKey][] = [
+                                'id' => $perjalanan->id,
                                 'nomor_perjalanan' => $perjalanan->nomor_perjalanan,
-                                'merk_type' => $kendaraan->merk_type ?? 'N/A',
-                                'nopol_kendaraan' => $kendaraan->nopol_kendaraan ?? 'N/A',
-                                'waktu_keberangkatan' => Carbon::parse($perjalanan->waktu_keberangkatan)->format('d M Y H:i'),
-                                'waktu_kepulangan' => Carbon::parse($perjalanan->waktu_kepulangan)->format('d M Y H:i'),
+                                'merk_type' => $detail->kendaraan->merk_type ?? 'N/A',
+                                'nopol_kendaraan' => $detail->kendaraan->nopol_kendaraan ?? 'N/A',
+                                'waktu_keberangkatan' => $startDate->format('d M Y H:i'),
+                                'waktu_kepulangan' => $endDate->format('d M Y H:i'),
                                 'kota_kabupaten' => $perjalanan->wilayah->nama_wilayah ?? $perjalanan->alamat_tujuan,
                                 'status_perjalanan' => $perjalanan->status_perjalanan,
+                                'tipe_penugasan' => $detail->tipe_penugasan,
                             ];
                         }
-                        $currentPerjalananDay->addDay();
                     }
+                    $currentPerjalananDay->addDay();
                 }
             }
         }
