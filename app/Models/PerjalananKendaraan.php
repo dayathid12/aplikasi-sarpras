@@ -20,6 +20,17 @@ class PerjalananKendaraan extends Model
         'kendaraan_nopol',
         'pengemudi_id',
         'asisten_id',
+        'tipe_penugasan', // Ini juga perlu ditambahkan jika belum ada
+        'waktu_selesai_penugasan',
+    ];
+
+    /**
+     * The attributes that should be cast.
+     *
+     * @var array
+     */
+    protected $casts = [
+        'waktu_selesai_penugasan' => 'datetime',
     ];
 
     /**
